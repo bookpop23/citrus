@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:latest
+    ports:
+      - 80:80
+      - 443:443
+      - 53:53
+    deploy:
+      mode: replicated
+      replicas: 3
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=proxy
+        - traefik.http.routers.traefik.entrypoints=http
+        - traefik.http.routers.traefik.rule=Host('traefix.reidsprite.com')
+        # - traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$apr1$$OAUZx7gK$$bDa2BIjD0ZUGn2Uawmr2p.
+        - traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https
+        - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
+        - traefik.http.routers.traefik.middlewares=traefik-https-redirect
+        - traefik.http.routers.traefik-secure.entrypoints=https
+        - traefik.http.routers.traefik-secure.rule=Host('traefix.reidsprite.com')
+        - traefik.http.routers.traefik-secure.middlewares=traefik-auth
+        - traefik.http.routers.traefik-secure.tls=true
+        - traefik.http.routers.traefik-secure.tls.certresolver=cloudflare
+        - traefik.http.routers.traefik-secure.tls.domains[0].main=reidsprite.com
+        - traefik.http.routers.traefik-secure.tls.domains[0].sans=*.reidsprite.com
+        - traefik.http.routers.traefik-secure.service=api@internal
+        - traefik.http.services.traefik-secure.loadbalancer.server.port=8080
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /mnt/docker/traefik/data/traefik.yml:/traefik.yml:ro
+      - /mnt/docker/traefik/data/acme.json:/acme.json
+      - /mnt/docker/traefik/config.yml:/config.yml:ro
+      - /mnt/docker/traefik/logs:/logs
+    networks:
+      - proxy
+    environment:
+      - TZ=America/New_York
+      - CF_API_EMAIL=reid@reidsprite.com
+      - CF_API_KEY=822dbcf7f565482fe377ce16e142615c7e6b6
+networks:
+  proxy:
+    external: true
