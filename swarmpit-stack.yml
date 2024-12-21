@@ -1,0 +1,86 @@
+services:
+  app:
+    image: swarmpit/swarmpit:latest
+    environment:
+      - SWARMPIT_DB=http://db:5984
+      - SWARMPIT_INFLUXDB=http://influxdb:8086
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 888:8080
+    depends_on: 
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    networks:
+      - traefik-public
+    deploy:
+      # resources:
+        # limits:
+          # memory: 1024M
+        # reservations:
+          # memory: 512M
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.swarmpit.rule=Host(`swarmpit.$DOMAIN`)
+        - traefik.http.routers.swarmpit.entrypoints=websecure
+        - traefik.http.routers.swarmpit.tls=true
+        - traefik.http.routers.swarmpit.service=swarmpit
+        - traefik.http.services.swarmpit.loadbalancer.server.port=888
+  db:
+    image:  couchdb:2.3.1
+    volumes:
+      - /mnt/docker/appdata/swarmpit/db-data:/opt/couchdb/data
+    networks:
+      - traefik-public
+    deploy:
+       resources:
+         limits:
+           memory: 256M
+         reservations:
+           memory: 128M
+
+  influxdb:
+    image: influxdb:1.7
+    volumes:
+      - /mnt/docker/appdata/swarmpit/influx-data:/var/lib/influxdb
+    networks:
+      - traefik-public
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  agent:
+    image: swarmpit/agent:latest
+    depends_on:
+      - app
+      - db
+      - influxdb    
+    #environment:
+    #  - DOCKER_API_VERSION=1.46
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-public
+    deploy:
+      mode: global
+      labels:
+        swarmpit.agent: 'true'
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+networks:
+  traefik-public:
+    external: true

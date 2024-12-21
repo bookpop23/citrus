@@ -1,0 +1,21 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --credentials-file /run/secrets/cf_tunnel_token run cfb836e8-b1cd-44b9-b505-ca59023e3120
+    secrets:
+      - cf_tunnel_token
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 2
+      #placement:
+      #  constraints:
+      #    - node.role == manager
+      #labels:
+      #  - traefik.http.services.cloudflared.loadbalancer.server.port=9000
+secrets:
+  cf_tunnel_token:
+    external: true
+networks:
+  traefik-public:
+    external: true
