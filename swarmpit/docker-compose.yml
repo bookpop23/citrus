@@ -34,6 +34,7 @@ services:
         - traefik.http.routers.swarmpit.service=swarmpit
         - traefik.http.services.swarmpit.loadbalancer.server.port=888
   db:
+
     image:  couchdb:2.3.1
     volumes:
       - /mnt/docker/appdata/swarmpit/db-data:/opt/couchdb/data

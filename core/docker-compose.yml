@@ -6,6 +6,8 @@ services:
       - target: 6379
         published: 6379
         protocol: tcp
+        mode: ingress
+    hostname: redis
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       start_period: 60s
@@ -16,17 +18,164 @@ services:
       - $DOCKERDIR/appdata/redis/data:/data
     networks:
       - traefik-public
+    restart: unless-stopped
     deploy:
       mode: replicated 
-      replicas: 3
+      replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.redis.rule=Host(`redis.$HOST.$DOMAIN`)
-        - traefik.http.routers.redis.entrypoints=redis
-        - traefik.http.routers.redis.tls=true
-        - traefik.http.routers.redis.service=redis
-        - traefik.http.services.redis.loadbalancer.server.port=6379
+
+        # 6379/tcp
+        - traefik.tcp.routers.redis.rule=HostSNI(`*`)
+        - traefik.tcp.routers.redis.entrypoints=redis-tcp
+        - traefik.tcp.routers.redis.service=redis
+        - traefik.tcp.services.redis.loadbalancer.server.port=6379
+
+  postgresql:
+    image: postgres:16-alpine
+    hostname: postgresql
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      start_period: 300s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    networks:
+      - traefik-public    
+    environment:
+      - POSTGRES_USER=${PG_USER:?database username required}
+      - POSTGRES_PASSWORD=${PG_PASS:?database password required}
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - $DOCKERDIR/appdata/postgresql/data:/var/lib/postgresql/data
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
+        - traefik.tcp.routers.postgresql.entrypoints=postgresql-tcp
+        - traefik.tcp.routers.postgresql.service=postgresql
+        - traefik.tcp.services.postgresql.loadbalancer.server.port=5432
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    secrets:
+      - password
+    networks:
+      - traefik-public
+    environment:
+      PGADMIN_DEFAULT_EMAIL: reid@reidsprite.com
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/password
+    ports:
+      - target: 80
+        published: 5050
+        mode: ingress
+    volumes:
+      - $DOCKERDIR/appdata/pgadmin4/data:/var/lib/pgadmin
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.pgadmin.rule=Host(`pgadmin.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.pgadmin.entrypoints=websecure
+        - traefik.http.routers.pgadmin.tls=true
+        - traefik.http.routers.pgadmin.tls.certresolver=cloudflare
+        - traefik.http.routers.pgadmin.service=pgadmin
+        - traefik.http.services.pgadmin.loadbalancer.server.port=80
+
+  adminer:
+    image: adminer
+    restart: always
+    networks:
+      - traefik-public
+    ports:
+      - 8080:8080
+  
+#  healthchecks:
+#    image: healthchecks/healthchecks:latest
+#    container_name: healthchecks
+#    depends_on:
+#      - postgresql
+#    restart: unless-stopped
+#    networks:
+#      - traefik-public
+#    environment:
+#      - ALLOWED_HOSTS=healthchecks.$HOSTNAME.$DOMAIN
+#      - DB=postgres
+#      - DB_HOST=postgresql
+#      - DB_PORT=5432
+#      - DB_NAME=hc
+#      - DB_USER=reid.sprite
+#      - DB_PASSWORD=${PG_PASS:?database password required}
+#      - DEBUG=True
+#      - DEFAULT_FROM_EMAIL=reid@reidsprite.com
+#      - EMAIL_HOST=smtp.gmail.com
+#      - EMAIL_HOST_PASSWORD="fadi kuye akvd bgrf"
+#      - EMAIL_HOST_USER=reid@reidsprite.com
+#      - EMAIL_PORT=587
+#      - EMAIL_USE_TLS=True
+#      - SECRET_KEY=ahyuargvhu9eq0ghadufi0dfhva9p
+#      - SITE_ROOT=https://healthchecks.$HOSTNAME.$DOMAIN
+#    ports:
+#      - target: 8000
+#        published: 8898
+#        protocol: tcp
+#    ports:
+#      - 18000:8000
+#    volumes:
+#      - $DOCKERDIR/appdata/healthchecks/data:/data
+#    deploy:
+#      mode: replicated 
+#      replicas: 1
+#      labels:
+#        - traefik.enable=true
+#        - traefik.http.routers.healthchecks.rule=Host(`healthchecks.$HOSTNAME.$DOMAIN`)
+#        - traefik.http.routers.healthchecks.entrypoints=websecure
+#        - traefik.http.routers.healthchecks.tls=true
+#        - traefik.http.routers.healthchecks.tls.certresolver=cloudflare
+#        - traefik.http.routers.healthchecks.service=healthchecks
+#        - traefik.http.services.healthchecks.loadbalancer.server.port=8000
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    ports:
+      - 3001:3001
+    volumes:
+      - $DOCKERDIR/appdata/uptime-kuma/data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    networks:
+      - traefik-public
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - UPTIME_KUMA_CLOUDFLARED_TOKEN=$CLOUDFLARE_TOKEN   
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.uptime-kuma.rule=Host(`status.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.uptime-kuma.entrypoints=websecure
+        - traefik.http.routers.uptime-kuma.tls=true
+        - traefik.http.routers.uptime-kuma.tls.certresolver=cloudflare
+        - traefik.http.routers.uptime-kuma.service=uptime-kuma
+        - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
 
 networks:
   traefik-public:
+    external: true
+
+secrets:
+  password:
     external: true
