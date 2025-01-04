@@ -20,12 +20,6 @@
         enabled: yes
         state: started
 
-    - name: Start glusterfs
-      service:
-        name: glusterd
-        state: started
-        enabled: yes
-
     - name: Check if GlusterFS is running
       shell: systemctl is-active glusterd
       register: glusterfs_status
@@ -35,6 +29,41 @@
       fail:
         msg: "GlusterFS is not running"
       when: glusterfs_status.stdout != "active"
+
+    - name: Create GlusterFS brick folder
+      file:
+        path: ~/glusterfs/gv0
+        state: directory
+        mode: '0755'
+
+    - name: Add GlusterFS brick to fstab
+      mount:
+        path: ~/glusterfs/gv0
+        src: localhost:/gv0
+        fstype: glusterfs
+        opts: defaults
+        state: present
+
+    - name: Mount GlusterFS brick
+      command: mount -a
+
+    - name: Check for existing Gluster volumes
+      shell: gluster volume list
+      register: gluster_volumes
+      changed_when: false
+
+    - name: Create Gluster volume if none exists
+      shell: gluster volume create gv0 replica 2 {{ ansible_hostname }}:/glusterfs/gv0 force
+      when: gluster_volumes.stdout == ""
+
+    - name: Start Gluster volume
+      shell: gluster volume start gv0
+      when: gluster_volumes.stdout == ""
+
+    - name: Join existing Gluster volume
+      shell: gluster peer probe {{ item }}
+      with_items: "{{ groups['orange'] }}"
+      when: gluster_volumes.stdout != ""
 
     - name: Create Docker file structure
       file:
