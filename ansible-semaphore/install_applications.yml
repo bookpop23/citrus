@@ -1,6 +1,6 @@
 ---
-- name: Update applications with apt-get
-  hosts: all
+- name: Update applications and install Docker
+  hosts: orange
   become: yes
 
   tasks:
@@ -13,3 +13,68 @@
         upgrade: dist
         autoremove: yes
         autoclean: yes
+
+    - name: Create Portainer data directory
+      file:
+        path: /mnt/docker/appdata/portainer/data
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create Docker swarm overlay network traefik-public
+      docker_network:
+        name: traefik-public
+        driver: overlay
+        attachable: true
+
+    - name: Deploy Portainer Agent service
+      docker_container:
+        name: agent
+        image: portainer/agent:latest
+        restart_policy: unless-stopped
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /var/lib/docker/volumes:/var/lib/docker/volumes
+        env:
+          AGENT_CLUSTER_ADDR: tasks.agent
+          AGENT_PORT: 9001
+        networks:
+          - name: agent_network
+        deploy:
+          mode: global
+          placement:
+            constraints:
+              - node.role == manager
+
+    - name: Deploy Portainer service
+      docker_container:
+        name: portainer
+        image: portainer/portainer-ce:latest
+        command: -H tcp://tasks.agent:9001 --tlsskipverify
+        restart_policy: unless-stopped
+        ports:
+          - "9443:9443"
+          - "9000:9000"
+          - "8000:8000"
+        volumes:
+          - type: bind
+            source: /mnt/docker/appdata/portainer/data
+            target: /data
+        networks:
+          - name: agent_network
+          - name: traefik-public
+        deploy:
+          mode: replicated
+          replicas: 1
+          placement:
+            constraints:
+              - node.role == manager
+          labels:
+            - traefik.enable=true
+            - traefik.http.routers.portainer.rule=Host(`portainer.orange.citrus.reidsprite.com`)
+            - traefik.http.routers.portainer.entrypoints=websecure
+            - traefik.http.routers.portainer.tls=true
+            - traefik.http.routers.portainer.tls.certresolver=cloudflare
+            - traefik.http.routers.portainer.service=portainer
+            - traefik.http.services.portainer.loadbalancer.server.port=9000

@@ -1,0 +1,92 @@
+---
+- name: Install Docker and configure GlusterFS
+  hosts: orange
+  become: yes
+  tasks:
+    - name: Create glusterfs data folder
+      file:
+        path: /mnt/docker
+        state: directory
+        mode: '0755'
+
+    - name: Install GlusterFS
+      apt:
+        name: glusterfs-server
+        state: present
+      notify: Start glusterfs
+
+    - name: Start glusterfs
+      service:
+        name: glusterd
+        state: started
+        enabled: yes
+
+    - name: Check if GlusterFS is running
+      shell: systemctl is-active glusterd
+      register: glusterfs_status
+      changed_when: false
+
+    - name: Fail if GlusterFS is not running
+      fail:
+        msg: "GlusterFS is not running"
+      when: glusterfs_status.stdout != "active"
+
+    - name: Create Docker file structure
+      file:
+        path: /mnt/docker/{{ item }}
+        state: directory
+        mode: '0755'
+      with_items:
+        - appdata
+        - compose
+        - secrets
+
+          - name: Install required packages
+            apt:
+            name: 
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - gnupg
+              - lsb-release
+            state: present
+
+          - name: Add Docker's official GPG key
+            apt_key:
+            url: https://download.docker.com/linux/debian/gpg
+            state: present
+
+          - name: Set up the Docker repository
+            apt_repository:
+            repo: deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable
+            state: present
+
+          - name: Install Docker
+            apt:
+            name: docker-ce
+            state: present
+
+          - name: Install Docker Compose
+            apt:
+            name: docker-compose-plugin
+            state: present
+
+          - name: Ensure Docker service is started
+            service:
+            name: docker
+            state: started
+            enabled: yes
+
+          - name: Check if /mnt/docker is mounted
+            command: mountpoint -q /mnt/docker
+            register: mount_status
+            changed_when: false
+
+          - name: Fail if /mnt/docker is not mounted
+            fail:
+            msg: "/mnt/docker is not mounted"
+            when: mount_status.rc != 0
+
+          - name: Join Docker swarm
+            shell: docker swarm join --token {{ swarm_token }} {{ manager_ip }}:2377
+            when: swarm_token is defined and manager_ip is defined
