@@ -13,7 +13,12 @@
       apt:
         name: glusterfs-server
         state: present
-      notify: Start glusterfs
+
+    - name: Enable and start GlusterFS service
+      systemd:
+        name: glusterd
+        enabled: yes
+        state: started
 
     - name: Start glusterfs
       service:
