@@ -1,7 +1,6 @@
 ---
-- name: Generate SSH keys on all nodes
-  hosts: all
-  become: yes
+- name: Generate and Install SSH keys
+  hosts: localhost
   tasks:
     - name: Generate SSH key pair
       ansible.builtin.openssh_keypair:
@@ -13,6 +12,11 @@
         mode: '0600'
       register: ssh_key
 
-    - name: Display public key
-      debug:
-        msg: "{{ ssh_key.public_key }}"
+- name: Install SSH keys on Orange nodes
+  hosts: orange
+  tasks:
+    - name: Append public key to authorized_users file
+      ansible.builtin.lineinfile:
+        path: /home/{{ ansible_user }}/.ssh/authorized_users
+        line: "{{ ssh_key.public_key }}"
+        create: yes
