@@ -1,7 +1,6 @@
 ---
   - hosts: master
     become: yes
-    ansible_debug: true
     tasks:
       - name: Install public keys
         ansible.posix.authorized_key:
