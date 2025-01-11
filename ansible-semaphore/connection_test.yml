@@ -1,6 +1,6 @@
 ---
 - name: Test SSH connections
-  hosts: master
+  hosts: all
   become: yes
   gather_facts: no
   tasks:
