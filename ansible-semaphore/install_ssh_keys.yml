@@ -14,7 +14,7 @@
         ansible.posix.authorized_key:
           user: reid.sprite
           state: present
-          key: "{{ lookup('file', '~/.ssh/ansible_id_rsa.pub') }}"
+          key: "{{ lookup('file', '/data/ansible_id_rsa.pub') }}"
       - name: Change sudoers file
         lineinfile:
           path: /etc/sudoers
