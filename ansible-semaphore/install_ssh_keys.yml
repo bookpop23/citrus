@@ -1,6 +1,5 @@
 ---
-  - name: Install public SSH keys
-    hosts: master
+  - hosts: master
     tasks:
       - name: Install public keys
         ansible.posix.authorized_key:
@@ -14,7 +13,7 @@
           regexp: '^%sudo'
           line: '%sudo ALL=(ALL) NOPASSWD: ALL'
           validate: 'visudo -cf %s'
-    hosts: orange
+  - hosts: orange
     tasks:
       - name: Install public keys
         ansible.posix.authorized_key:
