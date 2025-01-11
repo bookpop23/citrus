@@ -15,6 +15,7 @@
           line: '%sudo ALL=(ALL) NOPASSWD: ALL'
           validate: 'visudo -cf %s'
   - hosts: orange
+    become: yes
     tasks:
       - name: Install public keys
         ansible.posix.authorized_key:
