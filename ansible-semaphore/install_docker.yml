@@ -10,8 +10,8 @@
         mode: '0755'
 
     - name: Update apt cache
-    apt:
-      update_cache: yes
+      apt:
+        update_cache: yes
 
     - name: Install GlusterFS
       apt:
@@ -36,13 +36,13 @@
 
     - name: Create GlusterFS brick folder
       file:
-        path: ~/glusterfs/gv0
+        path: /home/{{ ansible_user }}/glusterfs/gv0
         state: directory
         mode: '0755'
 
     - name: Add GlusterFS brick to fstab
       mount:
-        path: ~/glusterfs/gv0
+        path: /home/{{ ansible_user }}/glusterfs/gv0
         src: localhost:/gv0
         fstype: glusterfs
         opts: defaults
@@ -57,7 +57,7 @@
       changed_when: false
 
     - name: Create Gluster volume if none exists
-      shell: gluster volume create gv0 replica 2 {{ ansible_hostname }}:/glusterfs/gv0 force
+      shell: gluster volume create gv0 replica 2 {{ ansible_hostname }}:/home/{{ ansible_user }}/glusterfs/gv0 force
       when: gluster_volumes.stdout == ""
 
     - name: Start Gluster volume
@@ -90,13 +90,13 @@
 
     - name: Add Docker GPG key
       apt_key:
-      url: https://download.docker.com/linux/debian/gpg
-      state: present
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
 
     - name: Add Docker repository
       apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable
-      state: present
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable
+        state: present
 
     - name: Install Docker CE
       apt:
@@ -121,4 +121,4 @@
 
     - name: Join Docker swarm
       shell: docker swarm join --token {{ swarm_token }} {{ manager_ip }}:2377
-      when: swarm_token is defined and manager_ip is defined
+      when: swarm_token is defined and manager_ip is defined and swarm_token != "" and manager_ip != ""
