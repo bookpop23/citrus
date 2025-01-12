@@ -17,6 +17,9 @@
       apt:
         name: glusterfs-server
         state: present
+        
+    - name: Add glusterd to systemctl
+      command: systemctl enable glusterd
 
     - name: Enable and start GlusterFS service
       systemd:
