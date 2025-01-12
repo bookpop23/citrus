@@ -48,7 +48,10 @@
         bricks: /home/{{ ansible_user }}/Gluster/gv1
         rebalance: yes
         cluster:
-          - {{ groups['orange'] }}
+          - bitter-orange
+          - blood-orange
+          - navel-orange
+          - sweet-orange
         run_once: true
 
     - name: Start gluster volume
