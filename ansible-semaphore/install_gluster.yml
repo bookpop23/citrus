@@ -42,7 +42,7 @@
       command: mount -a
 
     - name: Create Gluster volume
-      gluster.gluster.gluster_volume
+      gluster.gluster.gluster_volume:
         state: present
         name: gv1
         bricks: /home/{{ ansible_user }}/Gluster/gv1
