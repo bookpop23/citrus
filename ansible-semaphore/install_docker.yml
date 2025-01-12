@@ -19,12 +19,16 @@
         name: glusterfs-server
         state: present
 
-    - name: Enable service glusterd, start it, and ensure it is not masked
+    - name: Enable service glusterd and ensure it is not masked
       ansible.builtin.systemd_service:
         name: glusterd
         enabled: true
-        state: started
         masked: no
+
+    - name: Start service glusterd
+      ansible.builtin.systemd_service:
+        name: glusterd
+        state: started
 
     - name: Add GlusterFS brick to fstab
       mount:
