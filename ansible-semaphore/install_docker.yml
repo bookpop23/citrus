@@ -6,7 +6,7 @@
 
     - name: Create GlusterFS brick folder
       file:
-        path: /home/{{ ansible_user }}/glusterfs/gv0
+        path: /home/{{ ansible_user }}/Gluster/gv0
         state: directory
         mode: '0755'
 
@@ -31,8 +31,8 @@
         state: started
 
     - name: Add GlusterFS brick to fstab
-      mount:
-        path: /home/{{ ansible_user }}/glusterfs/gv0
+      ansible.posix.mount:
+        path: /home/{{ ansible_user }}/Gluster/gv0
         src: localhost:/gv0
         fstype: glusterfs
         opts: defaults
@@ -47,7 +47,7 @@
       changed_when: false
 
     - name: Create Gluster volume if none exists
-      shell: gluster volume create gv0 replica 2 {{ ansible_hostname }}:/home/{{ ansible_user }}/glusterfs/gv0 force
+      shell: gluster volume create gv0 replica 2 {{ ansible_hostname }}:/home/{{ ansible_user }}/Gluster/gv0 force
       when: gluster_volumes.stdout == ""
 
     - name: Start Gluster volume
