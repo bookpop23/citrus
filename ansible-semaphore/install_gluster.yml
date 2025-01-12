@@ -52,7 +52,7 @@
           - blood-orange
           - navel-orange
           - sweet-orange
-        run_once: true
+      run_once: true
 
     - name: Start gluster volume
       gluster.gluster.gluster_volume:
