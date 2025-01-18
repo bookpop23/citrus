@@ -10,26 +10,30 @@
         state: directory
         mode: '0755'
     
-    # - name: Add GlusterFS GPG key
-    #   ansible.builtin.get_url:
-    #     url: https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub
-    #     dest: /etc/apt/trusted.gpg.d/gluster.asc
-    #     mode: '0644'
-    #     force: true
+    - name: Add GlusterFS GPG key
+      ansible.builtin.get_url:
+        url: https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub
+        dest: /etc/apt/trusted.gpg.d/gluster.asc
+        mode: '0644'
+        force: true
 
-    - name: Print architecture
-      ansible.builtin.debug:
-        var: ansible_architecture
+    - name: Get DEBID
+      command: grep 'VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"'
+      register: debid
 
-    - name: Print userspace architecture
-      ansible.builtin.debug:
-        var: ansible_userspace_architecture
+    - name: Get DEBVER
+      command: grep 'VERSION=' /etc/os-release | grep -Eo '[a-z]+'
+      register: debver
+    
+    - name: Get DEBARCH
+      command: dpkg --print-architecture
+      register: debarch
 
-    # - name:  Add GlusterFS repository
-    #   apt_repository:
-    #     repo:  "deb [signed-by=/etc/apt/trusted.gpg.d/glusterfs.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/bookworm/amd64/apt stable main"
-    #     state: present
-    #     update_cache: yes
+    - name:  Add GlusterFS repository
+      apt_repository:
+        repo:  'deb [signed-by=/etc/apt/trusted.gpg.d/gluster.gpg] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main'
+        state: present
+        update_cache: yes
 
     - name: Update apt cache
       apt:
@@ -41,7 +45,7 @@
         state: present
 
     - name: Enable service glusterd and ensure it is not masked
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: glusterd
         enabled: true
         masked: no
