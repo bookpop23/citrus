@@ -33,7 +33,7 @@
       register: debarch
 
     - name:  Add GlusterFS repository
-      file:
+      copy:
         path: /etc/apt/sources.list.d/gluster.list
         content: echo "deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main"
 
