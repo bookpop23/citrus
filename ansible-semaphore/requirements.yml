@@ -6,4 +6,4 @@ collections:
   - 'community.crypto'
   - 'gluster.gluster'
 
-  roles:
+roles:
