@@ -34,8 +34,8 @@
 
     - name:  Add GlusterFS repository
       copy:
-        path: /etc/apt/sources.list.d/gluster.list
-        content: echo "deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main"
+        dest: /etc/apt/sources.list.d/gluster.list
+        content: 'echo "deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main"'
 
     - name: Update apt cache
       apt:
