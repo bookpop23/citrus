@@ -17,9 +17,13 @@
     #     mode: '0644'
     #     force: true
 
-    - name: Print all available facts
+    - name: Print architecture
       ansible.builtin.debug:
-        var: ansible_facts
+        var: ansible_architecture
+
+    - name: Print userspace architecture
+      ansible.builtin.debug:
+        var: ansible_userspace_architecture
 
     # - name:  Add GlusterFS repository
     #   apt_repository:
