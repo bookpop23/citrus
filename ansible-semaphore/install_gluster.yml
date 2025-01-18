@@ -34,7 +34,7 @@
 
     - name:  Add GlusterFS repository
       apt_repository:
-        repo:  'deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main'
+        repo:  'deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid }}/{{ debarch }}/apt {{ debver }} main'
         state: present
         update_cache: yes
 
