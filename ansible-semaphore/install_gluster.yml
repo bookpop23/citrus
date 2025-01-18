@@ -18,15 +18,15 @@
         force: true
 
     - name: Get DEBID
-      command: grep 'VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"'
+      command: "grep 'VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"'""
       register: debid
 
     - name: Get DEBVER
-      command: grep 'VERSION=' /etc/os-release | grep -Eo '[a-z]+'
+      command: "grep 'VERSION=' /etc/os-release | grep -Eo '[a-z]+'""
       register: debver
     
     - name: Get DEBARCH
-      command: dpkg --print-architecture
+      command: "dpkg --print-architecture"
       register: debarch
 
     - name:  Add GlusterFS repository
