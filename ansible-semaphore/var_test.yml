@@ -26,5 +26,5 @@
             cmd: wget -O - https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub | apt-key add -
         - name: gluster | apt source
           ansible.builtin.apt_repository:
-            repo: "deb [arch={{ debarch.stdout }}] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main"
+            repo: 'deb [arch={{ debarch.stdout }}] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ ansible_distribution_release }} main'
             state: present
