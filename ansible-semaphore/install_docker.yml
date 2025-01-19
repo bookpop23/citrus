@@ -1,114 +1,34 @@
 ---
-- name: Install Docker and configure GlusterFS
+- name: install Docker
   hosts: orange
-  become: yes
+  become: true
   tasks:
-
-    - name: Create GlusterFS brick folder
-      file:
-        path: /home/{{ ansible_user }}/Gluster/gv0
-        state: directory
-        mode: '0755'
-
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-
-    - name: Install GlusterFS
-      apt:
-        name: glusterfs-server
-        state: present
-
-    - name: Enable service glusterd and ensure it is not masked
-      ansible.builtin.systemd_service:
-        name: glusterd
-        enabled: true
-        masked: no
-
-    - name: Start service glusterd
-      ansible.builtin.systemd_service:
-        name: glusterd
-        state: started
-
-    - name: Add GlusterFS brick to fstab
-      ansible.posix.mount:
-        path: /home/{{ ansible_user }}/Gluster/gv0
-        src: localhost:/gv0
-        fstype: glusterfs
-        opts: defaults
-        state: present
-
-    - name: Mount GlusterFS brick
-      command: mount -a
-
-    - name: Check for existing Gluster volumes
-      shell: gluster volume list
-      register: gluster_volumes
-      changed_when: false
-
-    - name: Create Gluster volume if none exists
-      shell: gluster volume create gv0 replica 2 {{ ansible_hostname }}:/home/{{ ansible_user }}/Gluster/gv0 force
-      when: gluster_volumes.stdout == ""
-
-    - name: Start Gluster volume
-      shell: gluster volume start gv0
-      when: gluster_volumes.stdout == ""
-
-    - name: Join existing Gluster volume
-      shell: gluster peer probe {{ item }}
-      with_items: "{{ groups['orange'] }}"
-      when: gluster_volumes.stdout != ""
-
-    - name: Check if /mnt/docker is mounted
-      command: mountpoint -q /mnt/docker
-      register: mount_status
-      changed_when: false
-
-    - name: Fail if /mnt/docker is not mounted
-      fail:
-        msg: "/mnt/docker is not mounted"
-      when: mount_status.rc != 0
-
-    - name: Create Docker file structure
-      file:
-        path: /mnt/docker/{{ item }}
-        state: directory
-        mode: '0755'
-      with_items:
-        - appdata
-        - compose
-        - secrets
-
-    - name: Install required packages for Docker
-      apt:
-        name: 
+    - name: Install apt-transport-https
+      ansible.builtin.apt:
+        name:
           - apt-transport-https
           - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
-
-    - name: Add Docker GPG key
-      apt_key:
-        url: https://download.docker.com/linux/debian/gpg
-        state: present
-
-    - name: Add Docker repository
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable
-        state: present
-
-    - name: Install Docker CE
-      apt:
-        name: docker-ce
+          - lsb-release
+          - gnupg
         state: latest
+        update_cache: true
 
-    - name: Ensure Docker service is started
-      ansible.builtin.systemd_service:
-        name: docker
-        state: started
-        enabled: yes
+    - name: Add signing key
+      ansible.builtin.apt_key:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        state: present
 
-    - name: Join Docker swarm
-      shell: docker swarm join --token {{ swarm_token }} {{ manager_ip }}:2377
-      when: swarm_token is defined and manager_ip is defined and swarm_token != "" and manager_ip != ""
+    - name: Add repository into sources list
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+        update_cache: true
