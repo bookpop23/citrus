@@ -9,13 +9,6 @@
         path: /home/{{ ansible_user }}/Gluster/gv1
         state: directory
         mode: '0755'
-    
-    - name: Add GlusterFS GPG key
-      ansible.builtin.get_url:
-        url: https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub
-        dest: /etc/apt/trusted.gpg.d/gluster.asc
-        mode: '0644'
-        force: true
 
     - name: Get DEBID
       ansible.builtin.shell: 
@@ -32,10 +25,16 @@
         cmd: dpkg --print-architecture
       register: debarch
 
-    - name:  Add GlusterFS repository
-      copy:
-        dest: /etc/apt/sources.list.d/gluster.list
-        content: 'deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main'
+    - name: Add Gluster repo to apt
+      block:
+        - name: gluster | no apt key
+          ansible.builtin.get_url:
+            url: hhttps://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub
+            dest: /etc/apt/trusted.gpg.d/gluster.asc
+        - name: gluster | apt source
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/trusted.gpg.d/gluster.asc] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/{{ debid.stdout }}/{{ debarch.stdout }}/apt {{ debver.stdout }} main"
+            state: present
 
     - name: Update apt cache
       apt:
