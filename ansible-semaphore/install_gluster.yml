@@ -56,31 +56,46 @@
         name: glusterd
         state: started
 
-    - name: Add GlusterFS brick to fstab
-      ansible.posix.mount:
-        path: /home/{{ ansible_user }}/Gluster/gv1
-        src: localhost:/gv1
-        fstype: glusterfs
-        opts: defaults
+    # - name: Add GlusterFS brick to fstab
+    #   ansible.posix.mount:
+    #     path: /home/{{ ansible_user }}/Gluster/gv1
+    #     src: localhost:/gv1
+    #     fstype: glusterfs
+    #     opts: defaults
+    #     state: present
+
+    # - name: Mount GlusterFS brick
+    #   command: mount -a
+    
+    - name: Configure firewall
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: all
+        source: {{ ansible_default_ipv4.address }}
+        jump: ACCEPT
         state: present
 
-    - name: Mount GlusterFS brick
-      command: mount -a
-
-    - name: Create Gluster volume
-      gluster.gluster.gluster_volume:
+    - name: Configure peers
+      gluster.gluster.gluster_peer:
         state: present
-        name: gv1
-        bricks: /home/{{ ansible_user }}/Gluster/gv1
-        rebalance: yes
-        cluster:
-          - bitter-orange
-          - blood-orange
-          - navel-orange
-          - sweet-orange
-      run_once: true
+        nodes:
+          - "{{ item }}"
+      loop: "{{ groups['orange'] }}"
 
-    - name: Start gluster volume
-      gluster.gluster.gluster_volume:
-        state: started
-        name: gv1
+    # - name: Create Gluster volume
+    #   gluster.gluster.gluster_volume:
+    #     state: present
+    #     name: gv1
+    #     bricks: /home/{{ ansible_user }}/Gluster/gv1
+    #     rebalance: yes
+    #     cluster:
+    #       - bitter-orange
+    #       - blood-orange
+    #       - navel-orange
+    #       - sweet-orange
+    #   run_once: true
+
+    # - name: Start gluster volume
+    #   gluster.gluster.gluster_volume:
+    #     state: started
+    #     name: gv1
