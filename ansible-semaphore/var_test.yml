@@ -8,11 +8,6 @@
       ansible.builtin.shell: 
         cmd: grep 'VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '\"'
       register: debid
-
-    - name: Get DEBVER
-      ansible.builtin.shell: 
-        cmd: grep 'VERSION=' /etc/os-release | grep -Eo '[a-z]+'
-      register: debver
     
     - name: Get DEBARCH
       ansible.builtin.shell: 
