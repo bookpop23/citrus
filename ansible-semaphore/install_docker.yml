@@ -1,5 +1,5 @@
 ---
-- name: install Docker
+- name: Install Docker
   hosts: orange
   become: true
   tasks:
@@ -27,8 +27,9 @@
     - name: Install Docker
       ansible.builtin.apt:
         name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
+          - docker
+          - docker.io
+          - docker-compose
+          - docker-registry
         state: latest
         update_cache: true
