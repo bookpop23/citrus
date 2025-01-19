@@ -40,9 +40,11 @@
       apt:
         update_cache: yes
 
-    - name: Install GlusterFS
+    - name: Install GlusterFS and IPTables
       apt:
-        name: glusterfs-server
+        name: 
+          - glusterfs-server
+          - iptables
         state: present
 
     - name: Enable service glusterd and ensure it is not masked
