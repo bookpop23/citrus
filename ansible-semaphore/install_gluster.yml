@@ -71,7 +71,7 @@
       ansible.builtin.iptables:
         chain: INPUT
         protocol: all
-        source: {{ ansible_default_ipv4.address }}
+        source: "{{ ansible_default_ipv4.address }}"
         jump: ACCEPT
         state: present
 
