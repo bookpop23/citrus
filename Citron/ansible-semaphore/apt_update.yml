@@ -10,6 +10,5 @@
         autoremove: yes
         purge: yes
         clean: yes
-        upgrade: full
-        name: "*"
+        upgrade: full        
         state: latest
