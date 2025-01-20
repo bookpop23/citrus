@@ -43,5 +43,5 @@
         name: $USER
         append: true
         groups: docker
-        state: present
+
       
