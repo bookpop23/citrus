@@ -34,14 +34,14 @@
     #     state: latest
     #     update_cache: true
     - name: Install Docker
-      ansible.builtin.shell: "curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh"
+      ansible.builtin.shell: "curl -sSL https://get.docker.com | sh"
       args:
         creates: /usr/bin/docker
 
-    - name: Setup Docker user
-      ansible.builtin.user:
-        name: $USER
-        append: true
-        groups: docker
+    # - name: Setup Docker user
+    #   ansible.builtin.user:
+    #     name: $USER
+    #     append: true
+    #     groups: docker
 
       
