@@ -2,7 +2,7 @@
 services:
   cloudflared:
     image: cloudflare/cloudflared:latest
-    command: tunnel --credentials-file /run/secrets/cf_tunnel_token run cfb836e8-b1cd-44b9-b505-ca59023e3120
+    command: tunnel --credentials-file /run/secrets/cf_tunnel_token run 178ea871-a479-4255-bec4-af3a576bcdfb
     secrets:
       - cf_tunnel_token
     networks:
