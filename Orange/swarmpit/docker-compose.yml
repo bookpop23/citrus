@@ -16,7 +16,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - traefik-public
+      - swarm-network
     deploy:
       # resources:
         # limits:
@@ -39,7 +39,7 @@ services:
     volumes:
       - /mnt/docker/appdata/swarmpit/db-data:/opt/couchdb/data
     networks:
-      - traefik-public
+      - swarm-network
     deploy:
        resources:
          limits:
@@ -52,7 +52,7 @@ services:
     volumes:
       - /mnt/docker/appdata/swarmpit/influx-data:/var/lib/influxdb
     networks:
-      - traefik-public
+      - swarm-network
     deploy:
       resources:
         limits:
@@ -71,7 +71,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - traefik-public
+      - swarm-network
     deploy:
       mode: global
       labels:
@@ -83,5 +83,5 @@ services:
           memory: 32M
 
 networks:
-  traefik-public:
+  swarm-network:
     external: true

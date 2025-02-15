@@ -1,38 +1,36 @@
 services:
-  unbound:
-    image: klutchell/unbound:latest
-    hostname: unbound
-    ports:
-      - target: 53
-        published: 5053
-        protocol: tcp
-        mode: ingress
-      - target: 53
-        published: 5053
-        protocol: udp
-        mode: host
-    deploy:
-      mode: global
-
-      placement:
-        constraints: [node.role == manager]
-      resources:
-        reservations:
-          memory: 1G
-    networks:
-      - traefik-public
-    volumes:
-      - $DOCKERDIR/appdata/pihole/unbound/custom.conf.d:/etc/unbound/custom.conf.d
-    healthcheck:
-      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 30s
+#  unbound:
+#    image: klutchell/unbound:latest
+#    hostname: unbound
+#    ports:
+#      - target: 53
+#        published: 5053
+#        protocol: tcp
+#        mode: ingress
+#      - target: 53
+#        published: 5053
+#        protocol: udp
+#        mode: host
+#    deploy:
+#      mode: global
+#    networks:
+#      - swarm-network
+#    volumes:
+#      - $DOCKERDIR/appdata/pihole/unbound/custom.conf.d:/etc/unbound/custom.conf.d
+#    healthcheck:
+#      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+#      start_period: 30s
 
   pihole:
     image: pihole/pihole:latest
     hostname: pihole
+    networks:
+      - swarm-network
+    dns:
+      - 192.168.1.1
     ports:
       - target: 53
         published: 53
@@ -50,17 +48,16 @@ services:
         published: 8091
         protocol: tcp
         mode: ingress
-
     environment:
       - WEBPASSWORD=
       - TZ=$TZ
-     # - PIHOLE_DNS=172.25.0.1#5053
-      - PIHOLE_DNS=1.1.1.1
+      #- PIHOLE_DNS=172.25.0.1#5053
+      - PIHOLE_DNS=192.168.1.1
       - REV_SERVER=true
       - REV_SERVER_CIDR=192.168.1.0/24 #Update these fields to match your environment
       - REV_SERVER_TARGET=192.168.1.1
       - REV_SERVER_DOMAIN=$HOSTNAME.$DOMAIN
-      - DNSSEC=true
+      - DNSSEC=yes
       - FTLCONF_BLOCK_ICLOUD_PR=false
       - TEMPERATUREUNIT=f
     depends_on:
@@ -71,15 +68,9 @@ services:
     volumes:
       - $DOCKERDIR/appdata/pihole/pihole-data:/etc/pihole/
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
-    networks:
-      - traefik-public
     deploy:
       replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      resources:
-        reservations:
-          memory: 1G
+
       labels:
         - traefik.enable=true
         - traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)
@@ -102,5 +93,5 @@ services:
         # - traefik.tcp.services.pihole-dns-tcp.loadbalancer.server.port=53
 
 networks:
-  traefik-public:
+  swarm-network:
     external: true

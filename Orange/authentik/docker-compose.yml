@@ -1,86 +1,53 @@
 ---
 
 services:
-  postgresql:
-    image: docker.io/library/postgres:16-alpine
-    restart: unless-stopped
-    # healthcheck:
-      # test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      # start_period: 120s
-      # interval: 30s
-      # retries: 5
-      # timeout: 5s
-    networks:
-      - traefik-public
-      - authentik
-    volumes:
-      - $DOCKERDIR/appdata/authentik/database:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: ${PG_PASS:?database password required}
-      POSTGRES_USER: ${PG_USER:-authentik}
-      POSTGRES_DB: ${PG_DB:-authentik}
-    deploy:  
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: 
-          [node.role == manager]
-#          [node.hostname == blood-orange]
-  redis:
-    image: docker.io/library/redis:alpine
-    command: --save 60 1 --loglevel debug
-    restart: unless-stopped
-    # healthcheck:
-      # test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      # start_period: 120s
-      # interval: 30s
-      # retries: 5
-      # timeout: 3s
-    volumes:
-      - $DOCKERDIR/appdata/authentik/redis:/data
-    networks:
-      - authentik
   server:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.6.0}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
     restart: unless-stopped
     command: server
     environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${PG_PASS}
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+      - AUTHENTIK_WEB__WORKERS=2
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
     networks:
-      - traefik-public
-      - authentik
+      - swarm-network
     volumes:
       - $DOCKERDIR/appdata/authentik/media:/media
       - $DOCKERDIR/appdata/authentik/custom-templates:/templates
     ports:
-      - "${COMPOSE_PORT_HTTP:-9000}:9000"
-      - "${COMPOSE_PORT_HTTPS:-9443}:9443"
-    depends_on:
-      - postgresql
-      - redis
+      - target: 9000
+        published: 9010
+        protocol: tcp
+        mode: ingress
+      - target: 9443
+        published: 9543
+        protocol: tcp
+        mode: ingress
     deploy:
       labels:
         - traefik.enable=true
         - traefik.http.routers.authentik.entrypoints=websecure
-        - traefik.http.routers.authentik.rule=Host(`authentik.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.authentik.rule=Host(`auth.$DOMAIN`)
         - traefik.http.routers.authentik.service=authentik
         - traefik.http.routers.authentik.tls=true
         - traefik.http.routers.authentik.tls.certresolver=cloudflare
-        - traefik.http.services.authentik.loadbalancer.server.port=9010
+        - traefik.http.services.authentik.loadbalancer.server.port=9000
   worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.8.0}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
     restart: unless-stopped
     command: worker
+    deploy:
+      replicas: 1
     environment:
       AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
     # `user: root` and the docker socket volume are optional.
@@ -91,19 +58,12 @@ services:
     # (1000:1000 by default)
     user: root
     networks:
-      - traefik-public
-      - authentik
+      - swarm-network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - $DOCKERDIR/appdata/authentik/media:/media
       - $DOCKERDIR/appdata/authentik/certs:/certs
       - $DOCKERDIR/appdata/authentik/custom-templates:/templates
-    depends_on:
-      - postgresql
-      - redis
-
 networks:
-  traefik-public:
+  swarm-network:
     external: true
-  authentik:
-    driver: overlay

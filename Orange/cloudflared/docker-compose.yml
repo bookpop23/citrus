@@ -6,7 +6,12 @@ services:
     secrets:
       - cf_tunnel_token
     networks:
-      - traefik-public
+      - swarm-network
+#    dns:
+#      - 192.168.1.11
+#      - 192.168.1.22
+#      - 192.168.1.33
+#      - 192.168.1.44
     deploy:
       replicas: 2
       #placement:
@@ -18,5 +23,5 @@ secrets:
   cf_tunnel_token:
     external: true
 networks:
-  traefik-public:
+  swarm-network:
     external: true
