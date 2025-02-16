@@ -1,29 +1,28 @@
 services:
-#  unbound:
-#    image: klutchell/unbound:latest
-#    hostname: unbound
-#    ports:
-#      - target: 53
-#        published: 5053
-#        protocol: tcp
-#        mode: ingress
-#      - target: 53
-#        published: 5053
-#        protocol: udp
-#        mode: host
-#    deploy:
-#      mode: global
-#    networks:
-#      - swarm-network
-#    volumes:
-#      - $DOCKERDIR/appdata/pihole/unbound/custom.conf.d:/etc/unbound/custom.conf.d
-#    healthcheck:
-#      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
-#      interval: 30s
-#      timeout: 30s
-#      retries: 3
-#      start_period: 30s
-
+  unbound:
+    image: klutchell/unbound:latest
+    hostname: unbound
+    ports:
+      - target: 53
+        published: 5053
+        protocol: tcp
+        mode: ingress
+      - target: 53
+        published: 5053
+        protocol: udp
+        mode: host
+    deploy:
+      mode: global
+    networks:
+      - swarm-network
+    volumes:
+      - $DOCKERDIR/appdata/pihole/unbound/custom.conf.d:/etc/unbound/custom.conf.d
+    healthcheck:
+      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
   pihole:
     image: pihole/pihole:latest
     hostname: pihole
@@ -49,8 +48,8 @@ services:
     environment:
       - WEBPASSWORD=
       - TZ=$TZ
-      #- PIHOLE_DNS=172.25.0.1#5053
-      - PIHOLE_DNS=192.168.1.1
+      - PIHOLE_DNS=172.31.0.1#5053
+      #- PIHOLE_DNS=192.168.1.1
       - REV_SERVER=true
       - REV_SERVER_CIDR=192.168.1.0/24 #Update these fields to match your environment
       - REV_SERVER_TARGET=192.168.1.1
