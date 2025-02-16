@@ -1,23 +1,12 @@
 services:
   unbound:
     image: klutchell/unbound:latest
-    hostname: unbound
-    ports:
-      - target: 53
-        published: 5335
-        protocol: tcp
-        mode: ingress
-      - target: 53
-        published: 5335
-        protocol: udp
-        mode: host
     deploy:
       mode: global
-    privileged: true
     cap_add:
       - NET_ADMIN
     networks:
-      - swarm-network
+      - pihole-network
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound/custom.conf.d:/etc/unbound/custom.conf.d
     healthcheck:
@@ -30,36 +19,35 @@ services:
     image: pihole/pihole:latest
     hostname: pihole
     networks:
-      - swarm-network
+      - pihole-network
+      - swarm-network  # Allow Swarm services to use Pi-hole as DNS
     ports:
       - target: 53
         published: 53
         protocol: tcp
-        mode: ingress
+        mode: host
       - target: 53
         published: 53
         protocol: udp
-        mode: ingress
-#      - target: 67
-#        published: 67
-#        protocol: udp
-#        mode: host
+        mode: host
       - target: 80
         published: 8091
         protocol: tcp
-        mode: ingress
+        mode: host
     environment:
-      - WEBPASSWORD=
-      - TZ=$TZ
-      - PIHOLE_DNS=172.31.0.1#5335
-      #- PIHOLE_DNS=192.168.1.1
-      - REV_SERVER=true
-      - REV_SERVER_CIDR=192.168.1.0/24 #Update these fields to match your environment
-      - REV_SERVER_TARGET=192.168.1.1
-      - REV_SERVER_DOMAIN=$HOSTNAME.$DOMAIN
-      - DNSSEC=yes
-      - FTLCONF_BLOCK_ICLOUD_PR=false
-      - TEMPERATUREUNIT=f
+      WEBPASSWORD:
+      TZ: $TZ
+      PIHOLE_DNS1_: "unbound:53"  # Use Unbound's internal service name    
+      VIRTUAL_HOST: "pihole" 
+      IPv6: true
+      DNSMASQ_LISTENING: all
+      REV_SERVER: true
+      REV_SERVER_CIDR: 192.168.1.0/24 #Update these fields to match your environment
+      REV_SERVER_TARGET: 192.168.1.1
+      REV_SERVER_DOMAIN: $HOSTNAME.$DOMAIN
+      DNSSEC: yes
+      FTLCONF_BLOCK_ICLOUD_PR: false
+      TEMPERATUREUNIT: f
 #    depends_on:
 #      - unbound
     cap_add:
@@ -71,26 +59,25 @@ services:
     deploy:
       replicas: 1
       labels:
-        - traefik.enable=true
-        - traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)
-        - traefik.http.routers.pihole.entrypoints=websecure
-        - traefik.http.routers.pihole.tls=true
-        - traefik.http.routers.pihole.tls.certresolver=cloudflare
-        - traefik.http.routers.pihole.service=pihole
-        - traefik.http.services.pihole.loadbalancer.server.port=80
-        - traefik.http.middlewares.add-pihole-admin.replacepath.path=/admin
-        - traefik.http.middlewares.add-admin-prefix.addprefix.prefix=/admin
-        - traefik.http.routers.pihole.middlewares=add-admin-prefix
-        # 53/udp
-        # - traefik.udp.routers.pihole-dns-udp.entrypoints=dns-udp
-        # - traefik.udp.routers.pihole-dns-udp.service=pihole-dns-udp
-        # - traefik.udp.services.pihole-dns-udp.loadbalancer.server.port=53
-        # 53/tcp
-        # - traefik.tcp.routers.pihole-dns-tcp.rule=HostSNI(`*`)
-        # - traefik.tcp.routers.pihole-dns-tcp.entrypoints=dns-tcp
-        # - traefik.tcp.routers.pihole-dns-tcp.service=pihole-dns-tcp
-        # - traefik.tcp.services.pihole-dns-tcp.loadbalancer.server.port=53
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.citrus.reidsprite.com`)"
+      - "traefik.http.routers.pihole.entrypoints=websecure"
+      - "traefik.http.routers.pihole.tls.certresolver=cloudflare"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+
+      # Middleware to redirect `/` to `/admin`
+      - "traefik.http.middlewares.pihole-redirect.redirectregex.regex=^https://(.*)/$$"
+      - "traefik.http.middlewares.pihole-redirect.redirectregex.replacement=https://$${1}/admin"
+      - "traefik.http.middlewares.pihole-redirect.redirectregex.permanent=true"
+
+      # Attach middleware to the router
+      - "traefik.http.routers.pihole.middlewares=pihole-redirect"
 
 networks:
+  pihole-network:
+    driver: overlay  # Use Swarm overlay network
+    attachable: true  # Allows manual container attachment
+    scope: swarm
   swarm-network:
-    external: true
+    external: true  # This allows Pi-hole to communicate with existing Swarm services
