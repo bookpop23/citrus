@@ -13,6 +13,7 @@ services:
         mode: host
     deploy:
       mode: global
+    privileged: true
     networks:
       - swarm-network
     volumes:
