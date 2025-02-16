@@ -49,7 +49,7 @@ services:
     environment:
       - WEBPASSWORD=
       - TZ=$TZ
-      - PIHOLE_DNS=172.31.0.1#5053
+      - PIHOLE_DNS=172.31.0.1#5335
       #- PIHOLE_DNS=192.168.1.1
       - REV_SERVER=true
       - REV_SERVER_CIDR=192.168.1.0/24 #Update these fields to match your environment
