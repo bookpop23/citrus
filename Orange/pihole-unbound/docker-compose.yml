@@ -3,12 +3,12 @@ services:
     image: klutchell/unbound:latest
     hostname: unbound
     ports:
-      - target: 53
-        published: 5053
+      - target: 5335
+        published: 5335
         protocol: tcp
         mode: ingress
-      - target: 53
-        published: 5053
+      - target: 5335
+        published: 5335
         protocol: udp
         mode: host
     deploy:
