@@ -76,6 +76,6 @@ networks:
   pihole-network:
     driver: overlay  # Use Swarm overlay network
     attachable: true  # Allows manual container attachment
-    scope: swarm
+    #scope: swarm
   swarm-network:
     external: true  # This allows Pi-hole to communicate with existing Swarm services
