@@ -13,7 +13,8 @@ services:
         mode: host
     deploy:
       mode: global
-    privileged: true
+    cap_add:
+      - NET_ADMIN
     networks:
       - swarm-network
     volumes:
