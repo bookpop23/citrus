@@ -58,8 +58,8 @@ services:
       - DNSSEC=yes
       - FTLCONF_BLOCK_ICLOUD_PR=false
       - TEMPERATUREUNIT=f
-    depends_on:
-      - unbound
+#    depends_on:
+#      - unbound
     cap_add:
       - NET_ADMIN
     # Volumes store your data between container upgrades
@@ -76,9 +76,9 @@ services:
         - traefik.http.routers.pihole.tls.certresolver=cloudflare
         - traefik.http.routers.pihole.service=pihole
         - traefik.http.services.pihole.loadbalancer.server.port=80
-        #- traefik.http.middlewares.add-pihole-admin.replacepath.path=/admin
-        #- traefik.http.middlewares.add-admin-prefix.addprefix.prefix=/admin
-        #- traefik.http.routers.pihole.middlewares=add-admin-prefix
+        - traefik.http.middlewares.add-pihole-admin.replacepath.path=/admin
+        - traefik.http.middlewares.add-admin-prefix.addprefix.prefix=/admin
+        - traefik.http.routers.pihole.middlewares=add-admin-prefix
         # 53/udp
         # - traefik.udp.routers.pihole-dns-udp.entrypoints=dns-udp
         # - traefik.udp.routers.pihole-dns-udp.service=pihole-dns-udp
