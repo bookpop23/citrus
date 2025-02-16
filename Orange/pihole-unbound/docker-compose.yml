@@ -39,14 +39,14 @@ services:
       TZ: $TZ
       PIHOLE_DNS1_: "unbound:53"  # Use Unbound's internal service name    
       VIRTUAL_HOST: "pihole" 
-      DNSMASQ_LISTENING: all
-      REV_SERVER: true
-      REV_SERVER_CIDR: 192.168.1.0/24 #Update these fields to match your environment
-      REV_SERVER_TARGET: 192.168.1.1
+      DNSMASQ_LISTENING: "all"
+      REV_SERVER: "true"
+      REV_SERVER_CIDR: "192.168.1.0/24" #Update these fields to match your environment
+      REV_SERVER_TARGET: "192.168.1.1"
       REV_SERVER_DOMAIN: $HOSTNAME.$DOMAIN
-      DNSSEC: yes
-      FTLCONF_BLOCK_ICLOUD_PR: false
-      TEMPERATUREUNIT: f
+      DNSSEC: "yes"
+      FTLCONF_BLOCK_ICLOUD_PR: "false"
+      TEMPERATUREUNIT: "f"
 #    depends_on:
 #      - unbound
     cap_add:
