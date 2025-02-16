@@ -29,8 +29,6 @@ services:
     hostname: pihole
     networks:
       - swarm-network
-    dns:
-      - 192.168.1.1
     ports:
       - target: 53
         published: 53
@@ -70,7 +68,6 @@ services:
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
     deploy:
       replicas: 1
-
       labels:
         - traefik.enable=true
         - traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)
