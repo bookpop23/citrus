@@ -1,6 +1,6 @@
 services:
   unbound:
-    image: sgaduuw/unbound-rpi:latest
+    image: sgaduuw/unbound:latest
     deploy:
       mode: global
     ports:
