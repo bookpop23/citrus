@@ -36,21 +36,19 @@ services:
     environment:
       WEBPASSWORD:
       TZ: $TZ
-      PIHOLE_DNS1_: "unbound:53"  # Use Unbound's internal service name    
-      VIRTUAL_HOST: "pihole" 
+      PIHOLE_DNS_: "unbound;unbound"  # Use Unbound's internal service name    
+      VIRTUAL_HOST: pihole.$HOSTNAME.$DOMAIN
       DNSMASQ_LISTENING: "all"
+      IPv6: "true"
       REV_SERVER: "true"
       REV_SERVER_CIDR: "192.168.1.0/24" #Update these fields to match your environment
       REV_SERVER_TARGET: "192.168.1.1"
       REV_SERVER_DOMAIN: $HOSTNAME.$DOMAIN
-      DNSSEC: "yes"
+      DNSSEC: "true"
       FTLCONF_BLOCK_ICLOUD_PR: "false"
       TEMPERATUREUNIT: "f"
-#    depends_on:
-#      - unbound
-    cap_add:
-      - NET_ADMIN
-    # Volumes store your data between container upgrades
+    depends_on:
+      - unbound
     volumes:
       - $DOCKERDIR/appdata/pihole/pihole-data:/etc/pihole/
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
