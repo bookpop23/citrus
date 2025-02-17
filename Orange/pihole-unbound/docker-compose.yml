@@ -5,11 +5,11 @@ services:
       mode: global
     ports:
       - target: 53
-        published: 53
+        published: 5335
         protocol: udp
         mode: host  # ✅ Ensures direct access to UDP 53
       - target: 53
-        published: 53
+        published: 5335
         protocol: tcp
         mode: host  # ✅ Ensures direct access to TCP 53
     networks:
