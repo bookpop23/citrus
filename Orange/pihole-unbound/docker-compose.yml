@@ -1,6 +1,6 @@
 services:
   unbound:
-    image: MatthewVance/unbound-docker-rpi:latest
+    image: mvance/unbound-rpi:latest
     deploy:
       mode: global
     ports:
