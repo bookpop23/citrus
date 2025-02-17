@@ -1,6 +1,6 @@
 services:
   unbound:
-    image: mvance/unbound-rpi:latest
+    image: sgaduuw/unbound-rpi:latest
     deploy:
       mode: global
     ports:
