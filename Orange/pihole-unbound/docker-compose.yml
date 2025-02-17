@@ -37,7 +37,7 @@ services:
       WEBPASSWORD:
       TZ: $TZ
       PIHOLE_DNS_: "127.0.0.11"  
-      VIRTUAL_HOST: pihole
+      VIRTUAL_HOST: pihole.$HOSTNAME.$DOMAIN
       DNSMASQ_LISTENING: "all"
       IPv6: "true"
       REV_SERVER: "true"
@@ -56,7 +56,8 @@ services:
       replicas: 1
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.pihole.rule=Host(`pihole.citrus.reidsprite.com`)"
+        - "traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)"
+        - traefik.http.routers.authentik.service=pihole
         - "traefik.http.routers.pihole.entrypoints=websecure"
         - "traefik.http.routers.pihole.tls.certresolver=cloudflare"
         - "traefik.http.services.pihole.loadbalancer.server.port=80"
