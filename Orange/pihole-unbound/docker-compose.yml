@@ -14,7 +14,7 @@ services:
         mode: host  # ✅ Ensures direct access to TCP 53
     networks:
       - pihole-network
-    volumes:
+    # volumes:
     #  - $DOCKERDIR/appdata/pihole/unbound/unbound.conf:/etc/unbound/unbound.conf:ro
     #  - $DOCKERDIR/appdata/pihole/unbound/root.key:/var/lib/unbound/root.key:rw
     # healthcheck:
