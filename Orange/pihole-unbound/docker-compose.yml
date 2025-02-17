@@ -7,6 +7,8 @@ services:
       - swarm-network
     volumes:
      - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
+    environment:
+      - UNBOUND_CACHEDB_BACKEND=redis
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
       interval: 30s
@@ -70,5 +72,6 @@ services:
         - "traefik.http.routers.pihole.middlewares=pihole-redirect"
 
 networks:
+
   swarm-network:
     external: true  # This allows Pi-hole to communicate with existing Swarm services
