@@ -1,6 +1,6 @@
 services:
   unbound:
-    image: klutchell/unbound:latest
+    image: mvance/unbound:latest
     deploy:
       mode: global
     cap_add:
@@ -8,8 +8,7 @@ services:
     networks:
       - pihole-network
     volumes:
-      - $DOCKERDIR/appdata/pihole/unbound/custom.conf.d:/etc/unbound/custom.conf.d
-      - $DOCKERDIR/appdata/pihole/unbound/root.hints:/var/lib/unbound/root.hints:ro 
+      - $DOCKERDIR/appdata/pihole/unbound/unbound.conf:/etc/unbound/unbound.conf:ro
       - $DOCKERDIR/appdata/pihole/unbound/root.key:/var/lib/unbound/root.key:rw
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
