@@ -7,11 +7,11 @@ services:
       - cf_tunnel_token
     networks:
       - swarm-network
-    # dns:
-    #   - 192.168.1.11
-    #   - 192.168.1.22
-    #   - 192.168.1.33
-    #   - 192.168.1.44
+    dns:
+      - 192.168.1.11
+      - 192.168.1.22
+      - 192.168.1.33
+      - 192.168.1.44
     deploy:
       replicas: 2
       #placement:
