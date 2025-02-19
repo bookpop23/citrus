@@ -39,8 +39,8 @@ services:
       FTLCONF_dns_upstreams: '127.0.0.11#53'
       FTLCONF_dns_listeningMode: 'all'
       FTLCONF_dns_dnssec: 'true'
-      FTLCONF_dns_revserver: 'true,192.168.0.0/20,192.168.1.1#53,$HOSTNAME.$DOMAIN'
-      FTLCONF_dns_block_icloud_pr: 'false'
+      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$HOSTNAME.$DOMAIN'
+      FTLCONF_dns_blocking_edns: 'false'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
