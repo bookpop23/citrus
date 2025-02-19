@@ -41,7 +41,7 @@ services:
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revserver: 'true,192.168.0.0/24,192.168.1.1#53,$HOSTNAME.$DOMAIN'
       FTLCONF_BLOCK_ICLOUD_PR: "false"
-    cap-add:
+    cap_add:
       - NET_ADMIN
       - SYS_TIME
     depends_on:
