@@ -34,19 +34,13 @@ services:
         protocol: tcp
         mode: ingress
     environment:
-      WEBPASSWORD:
       TZ: $TZ
-      PIHOLE_DNS_: "127.0.0.11"  
-      VIRTUAL_HOST: pihole.$HOSTNAME.$DOMAIN
-      DNSMASQ_LISTENING: "all"
-      IPv6: "true"
-      REV_SERVER: "true"
-      REV_SERVER_CIDR: "192.168.1.0/24" #Update these fields to match your environment
-      REV_SERVER_TARGET: "192.168.1.1"
-      REV_SERVER_DOMAIN: $HOSTNAME.$DOMAIN
-      DNSSEC: "true"
+      FTLCONF_webserver_api_password:
+      FTLCONF_dns_upstreams: 'unbound'
+      FTLCONF_dns_listeningMode: 'all'
+      FTLCONF_dns_dnssec: 'true'
+      FTLCONF_dns_revserver: 'true,192.168.0.0/24,192.168.1.1#53,$HOSTNAME.$DOMAIN'
       FTLCONF_BLOCK_ICLOUD_PR: "false"
-      TEMPERATUREUNIT: "f"
     depends_on:
       - unbound
     volumes:
