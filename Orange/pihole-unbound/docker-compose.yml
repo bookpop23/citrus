@@ -61,13 +61,13 @@ services:
         - "traefik.http.routers.pihole.tls.certresolver=cloudflare"
         - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
-        # # Middleware to redirect `/` to `/admin`
-        # - "traefik.http.middlewares.pihole-redirect.redirectregex.regex=^https://(.*)/$$"
-        # - "traefik.http.middlewares.pihole-redirect.redirectregex.replacement=https://$${1}/admin"
-        # - "traefik.http.middlewares.pihole-redirect.redirectregex.permanent=true"
+        # Middleware to redirect `/` to `/admin`
+        - "traefik.http.middlewares.pihole-redirect.redirectregex.regex=^https://(.*)/$$"
+        - "traefik.http.middlewares.pihole-redirect.redirectregex.replacement=https://$${1}/admin"
+        - "traefik.http.middlewares.pihole-redirect.redirectregex.permanent=true"
 
-        # # Attach middleware to the router
-        # - "traefik.http.routers.pihole.middlewares=pihole-redirect"
+        # Attach middleware to the router
+        - "traefik.http.routers.pihole.middlewares=pihole-redirect"
 
 networks:
   swarm-network:
