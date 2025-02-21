@@ -61,12 +61,12 @@ services:
         - "traefik.http.routers.pihole.tls.certresolver=cloudflare"
         - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
-        # #Attach the defined middleware to a router
-        # - "traefik.http.routers.pihole.middlewares=pihole-redirectregex"
-        # #Define a middleware regex
-        # - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$HOSTNAME.$DOMAIN/$$"
-        # #Define a replacement
-        # - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$HOSTNAME.$DOMAIN/admin/"
+        #Attach the defined middleware to a router
+        - "traefik.http.routers.pihole.middlewares=pihole-redirectregex"
+        #Define a middleware regex
+        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$HOSTNAME.$DOMAIN/$$"
+        #Define a replacement
+        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$HOSTNAME.$DOMAIN/admin/"
 
         # # Middleware to redirect `/` to `/admin`
         # - "traefik.http.middlewares.pihole-redirect.redirectregex.regex=^https://(.*)/$$"
