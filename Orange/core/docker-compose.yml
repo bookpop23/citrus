@@ -78,18 +78,22 @@ services:
       - PGADMIN_MASTER_PASSWORD='True'
       - PGADMIN_CONFIG_AUTHENTICATION_SOURCES="['oauth2', 'internal']"
       - PGADMIN_CONFIG_OAUTH2_AUTO_CREATE_USER='True'
-      - PGADMIN_CONFIG_OAUTH2_NAME='authentik'
-      - PGADMIN_CONFIG_OAUTH2_DISPLAY_NAME='authentik'
-      - PGADMIN_CONFIG_OAUTH2_CLIENT_ID='rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj'
-      - PGADMIN_CONFIG_OAUTH2_CLIENT_SECRET='w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf'
-      - PGADMIN_CONFIG_OAUTH2_TOKEN_URL='https://pgadmin.citrus.reidsprite.com/application/o/token/'
-      - PGADMIN_CONFIG_OAUTH2_AUTHORIZATION_URL='https://pgadmin.citrus.reidsprite.com/application/o/authorize/'
-      - PGADMIN_CONFIG_OAUTH2_API_BASE_URL='https://pgadmin.citrus.reidsprite.com/'
-      - PGADMIN_CONFIG_OAUTH2_USERINFO_ENDPOINT='https://pgadmin.citrus.reidsprite.com/application/o/userinfo/'
-      - PGADMIN_CONFIG_OAUTH2_SERVER_METADATA_URL='https://pgadmin.citrus.reidsprite.com/application/o/pgadmin/.well-known/openid-configuration'
-      - PGADMIN_CONFIG_OAUTH2_SCOPE='openid email profile'
-      - PGADMIN_CONFIG_OAUTH2_ICON='fa-key'
-      - PGADMIN_CONFIG_OAUTH2_BUTTON_COLOR='FFFFFF'
+      - PGADMIN_CONFIG_OAUTH2_CONFIG="[
+          {
+        'OAUTH2_NAME':'authentik',
+        'OAUTH2_DISPLAY_NAME':'authentik',
+        'OAUTH2_CLIENT_ID':'rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj',
+        'OAUTH2_CLIENT_SECRET':'w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf',
+        'OAUTH2_TOKEN_URL':'https://pgadmin.citrus.reidsprite.com/application/o/token/',
+        'OAUTH2_AUTHORIZATION_URL':'https://pgadmin.citrus.reidsprite.com/application/o/authorize/',
+        'OAUTH2_API_BASE_URL':'https://pgadmin.citrus.reidsprite.com/',
+        'OAUTH2_USERINFO_ENDPOINT':'https://pgadmin.citrus.reidsprite.com/application/o/userinfo/',
+        'OAUTH2_SERVER_METADATA_URL':'https://pgadmin.citrus.reidsprite.com/application/o/pgadmin/.well-known/openid-configuration',
+        'OAUTH2_SCOPE':'openid email profile',
+        'OAUTH2_ICON':'fa-key',
+        'OAUTH2_BUTTON_COLOR':'FFFFFF'
+          }
+        ]"
     ports:
       - target: 80
         published: 5050
