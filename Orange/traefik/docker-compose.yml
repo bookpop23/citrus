@@ -53,7 +53,7 @@ services:
         # - traefik.http.middlewares.test-auth.basicauth.usersfile=/run/secrets/user_pass_md5_file
 
         # traefik-https the actual router using HTTPS
-        - traefik.http.routers.traefik.rule=Host(`traefik.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.traefik.rule=Host(`traefik.$HOSTNAME.$DOMAIN`) || Host(`auth.$DOMAIN`)
         - traefik.http.routers.traefik.entrypoints=websecure
         - traefik.http.routers.traefik.tls=true
         - traefik.http.routers.traefik.tls.certresolver=cloudflare
