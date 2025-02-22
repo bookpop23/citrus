@@ -14,9 +14,11 @@ OAUTH2_CONFIG = [
         'OAUTH2_API_BASE_URL': 'https://auth.reidsprite.com/',
         'OAUTH2_USERINFO_ENDPOINT': 'https://auth.reidsprite.com/application/o/userinfo/',
         'OAUTH2_SERVER_METADATA_URL': 'https://auth.reidsprite.com/application/o/pgadmin/.well-known/openid-configuration',
+        'OAUTH2_REDIRECT_URI': 'https://pgadmin.citrus.reidsprite.com/oauth2/authorize',
         'OAUTH2_SCOPE': 'openid email profile',
         'OAUTH2_ICON': 'fa-lock',
         'OAUTH2_BUTTON_COLOR': '#000000'
     }
 ]
 OAUTH2_AUTO_CREATE_USER = True
+MASTER_PASSWORD = True
