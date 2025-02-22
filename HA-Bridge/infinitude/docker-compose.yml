@@ -8,8 +8,6 @@ services:
       - target: 3000
         published: 3010
         protocol: tcp
-    networks:
-      - bridge
     volumes:
       - /mnt/docker/appdata/infinitude/state:/infinitude/state
     environment:
