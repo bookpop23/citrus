@@ -10,7 +10,7 @@ services:
         protocol: tcp
         mode: ingress
     networks:
-      - swarm-network
+      - bridge
     volumes:
       - /mnt/docker/appdata/infinitude/state:/infinitude/state
     environment:
@@ -23,5 +23,5 @@ services:
         - /dev/ttyS0:/dev/ttyS0
 
 networks:
-  swarm-network:
+  bridge
     external: true
