@@ -14,7 +14,7 @@ services:
     volumes:
       - /mnt/docker/appdata/infinitude/state:/infinitude/state
       - /run/udev:/run/udev:ro
-      - /dev:/dev
+      - /dev/ttySC0:/dev/ttySC0
     environment:
       - APP_SECRET=Pogotudinal
       - PASS_REQS=300
