@@ -23,5 +23,5 @@ services:
         - /dev/ttyS0:/dev/ttyS0
 
 networks:
-  bridge
+  bridge:
     external: true
