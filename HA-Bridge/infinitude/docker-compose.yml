@@ -24,5 +24,5 @@ services:
       #- SERIAL_SOCKET=192.168.1.47:23
     device_cgroup_rules:
       - 'c 236:* rmw'
-   # devices:
-   #   - "/dev/ttySC0:/dev/ttySC0"
+    devices:
+      - /dev/ttySC0:/dev/ttySC0
