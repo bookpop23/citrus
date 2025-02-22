@@ -73,10 +73,10 @@ services:
     networks:
       - swarm-network
     environment:
-      - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
-      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
-      - PGADMIN_AUTHENTIK_CLIENT_ID=rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj
-      - PGADMIN_AUTHENTIK_CLIENT_SECRET=w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf
+      - "PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com"
+      - "PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password"
+      - "PGADMIN_AUTHENTIK_CLIENT_ID=rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj"
+      - "PGADMIN_AUTHENTIK_CLIENT_SECRET=w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf"
     ports:
       - target: 80
         published: 5050
