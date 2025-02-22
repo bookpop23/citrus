@@ -1,6 +1,5 @@
 services:
   infinitude:
-    privileged: true
     image: nebulous/infinitude
     container_name: infinitude
     hostname: infinitude
@@ -15,9 +14,9 @@ services:
     environment:
       - APP_SECRET=Pogotudinal
       - PASS_REQS=300
-      - MODE='development'
+      - MODE=development
       - LOGLEVEL=debug
       - SERIAL_TTY=/dev/ttySC0
       #- SERIAL_SOCKET=192.168.1.47:23
     devices:
-        - /dev/ttySC0:/dev/ttySC0
+        - "/dev/ttySC0:/dev/ttySC0"
