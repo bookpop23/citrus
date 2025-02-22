@@ -76,7 +76,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
       - PGADMIN_CONFIG_AUTHENTICATION_SOURCES="['oauth2', 'internal']"
-      - PGADMIN_CONFIG_OAUTH2_AUTO_CREATE_USER=True
+      #- PGADMIN_CONFIG_OAUTH2_AUTO_CREATE_USER=True
       - PGADMIN_CONFIG_OAUTH2_CONFIG="[
           {
         'OAUTH2_NAME':'authentik',
@@ -103,7 +103,7 @@ services:
       replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.pgadmin.rule=Host(`pgadmin.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.pgadmin.rule=Host(`pgadmin.$HOSTNAME.$DOMAIN`) || Host(`pgadmin`)
         - traefik.http.routers.pgadmin.entrypoints=websecure
         - traefik.http.routers.pgadmin.tls=true
         - traefik.http.routers.pgadmin.tls.certresolver=cloudflare
