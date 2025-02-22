@@ -47,20 +47,6 @@ services:
     environment:
       - POSTGRES_USER=${PG_USER:?database username required}
       - POSTGRES_PASSWORD=${PG_PASS:?database password required}
-      - PGADMIN_CONFIG_AUTHENTICATION_SOURCES="['oauth2', 'internal']"
-      - PGADMIN_CONFIG_OAUTH2_AUTO_CREATE_USER=true
-      - PGADMIN_CONFIG_OAUTH2_NAME=authentik
-      - PGADMIN_CONFIG_OAUTH2_DISPLAY_NAME=authentik
-      - PGADMIN_CONFIG_OAUTH2_CLIENT_ID='rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj'
-      - PGADMIN_CONFIG_OAUTH2_CLIENT_SECRET='w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf'
-      - PGADMIN_CONFIG_OAUTH2_TOKEN_URL='https://pgadmin.citrus.reidsprite.com/application/o/token/'
-      - PGADMIN_CONFIG_OAUTH2_AUTHORIZATION_URL='https://pgadmin.citrus.reidsprite.com/application/o/authorize/'
-      - PGADMIN_CONFIG_OAUTH2_API_BASE_URL='https://pgadmin.citrus.reidsprite.com/'
-      - PGADMIN_CONFIG_OAUTH2_USERINFO_ENDPOINT='https://pgadmin.citrus.reidsprite.com/application/o/userinfo/'
-      - PGADMIN_CONFIG_OAUTH2_SERVER_METADATA_URL='https://pgadmin.citrus.reidsprite.com/application/o/pgadmin/.well-known/openid-configuration'
-      - PGADMIN_CONFIG_OAUTH2_SCOPE='openid email'
-      - PGADMIN_CONFIG_OAUTH2_ICON='fa-key'
-      - PGADMIN_CONFIG_OAUTH2_BUTTON_COLOR='FFFFFF'
 
     ports:
       - target: 5432
@@ -89,20 +75,21 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
-      #- PGADMIN_CONFIG_AUTHENTICATION_SOURCES=['oauth2', 'internal']
-      #- PGADMIN_CONFIG_OAUTH2_AUTO_CREATE_USER=True
-      #- PGADMIN_CONFIG_OAUTH2_NAME=authentik
-      #- PGADMIN_CONFIG_OAUTH2_DISPLAY_NAME=authentik
-      #- PGADMIN_CONFIG_OAUTH2_CLIENT_ID='rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj'
-      #- PGADMIN_CONFIG_OAUTH2_CLIENT_SECRET='w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf'
-      #- PGADMIN_CONFIG_OAUTH2_TOKEN_URL='https://auth.reidsprite.com/application/o/token/'
-      #- PGADMIN_CONFIG_OAUTH2_AUTHORIZATION_URL='https://auth.reidsprite.com/application/o/authorize/'
-      #- PGADMIN_CONFIG_OAUTH2_API_BASE_URL='https://auth.reidsprite.com/'
-      #- PGADMIN_CONFIG_OAUTH2_USERINFO_ENDPOINT='https://auth.reidsprite.com/application/o/userinfo/'
-      #- PGADMIN_CONFIG_OAUTH2_SERVER_METADATA_URL='https://auth.reidsprite.com/application/o/pgadmin/.well-known/openid-configuration'
-      #- PGADMIN_CONFIG_OAUTH2_SCOPE='openid email'
-      #- PGADMIN_CONFIG_OAUTH2_ICON='fa-key'
-      #- PGADMIN_CONFIG_OAUTH2_BUTTON_COLOR='FFFFFF'
+      - PGADMIN_MASTER_PASSWORD=true
+      - PGADMIN_CONFIG_AUTHENTICATION_SOURCES="['oauth2', 'internal']"
+      - PGADMIN_CONFIG_OAUTH2_AUTO_CREATE_USER=true
+      - PGADMIN_CONFIG_OAUTH2_NAME=authentik
+      - PGADMIN_CONFIG_OAUTH2_DISPLAY_NAME=authentik
+      - PGADMIN_CONFIG_OAUTH2_CLIENT_ID='rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj'
+      - PGADMIN_CONFIG_OAUTH2_CLIENT_SECRET='w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf'
+      - PGADMIN_CONFIG_OAUTH2_TOKEN_URL='https://pgadmin.citrus.reidsprite.com/application/o/token/'
+      - PGADMIN_CONFIG_OAUTH2_AUTHORIZATION_URL='https://pgadmin.citrus.reidsprite.com/application/o/authorize/'
+      - PGADMIN_CONFIG_OAUTH2_API_BASE_URL='https://pgadmin.citrus.reidsprite.com/'
+      - PGADMIN_CONFIG_OAUTH2_USERINFO_ENDPOINT='https://pgadmin.citrus.reidsprite.com/application/o/userinfo/'
+      - PGADMIN_CONFIG_OAUTH2_SERVER_METADATA_URL='https://pgadmin.citrus.reidsprite.com/application/o/pgadmin/.well-known/openid-configuration'
+      - PGADMIN_CONFIG_OAUTH2_SCOPE='openid email profile'
+      - PGADMIN_CONFIG_OAUTH2_ICON='fa-key'
+      - PGADMIN_CONFIG_OAUTH2_BUTTON_COLOR='FFFFFF'
     ports:
       - target: 80
         published: 5050
