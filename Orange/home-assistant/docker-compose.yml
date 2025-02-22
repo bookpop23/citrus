@@ -40,32 +40,6 @@ services:
         - traefik.http.routers.ha.tls.certresolver=cloudflare
         - traefik.http.routers.ha.service=ha
         - traefik.http.services.ha.loadbalancer.server.port=8123
-  infinitude:
-    image: nebulous/infinitude
-    container_name: infinitude
-    hostname: infinitude
-    restart: unless-stopped
-    ports:
-      - target: 3000
-        published: 3010
-        protocol: tcp
-        mode: ingress
-    networks:
-      - swarm-network
-    volumes:
-      - /mnt/docker/appdata/infinitude/state:/infinitude/state
-    environment:
-      - APP_SECRET=Pogotudinal
-      - PASS_REQS=300
-      - MODE=Production
-    deploy:
-      mode: replicated 
-      replicas: 1
-  #      - SERIAL_TTY=/dev/ttyUSB0
-  #      - SERIAL_SOCKET=192.168.1.47:23
-   #   devices:
-   #     - /dev/ttyUSB0:/dev/ttyUSB0
-
 networks:
   swarm-network:
     external: true

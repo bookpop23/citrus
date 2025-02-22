@@ -1,0 +1,27 @@
+services:
+  infinitude:
+    image: nebulous/infinitude
+    container_name: infinitude
+    hostname: infinitude
+    restart: unless-stopped
+    ports:
+      - target: 3000
+        published: 3010
+        protocol: tcp
+        mode: ingress
+    networks:
+      - swarm-network
+    volumes:
+      - /mnt/docker/appdata/infinitude/state:/infinitude/state
+    environment:
+      - APP_SECRET=Pogotudinal
+      - PASS_REQS=300
+      - MODE=Production
+      - SERIAL_TTY=/dev/ttyS0
+      #- SERIAL_SOCKET=192.168.1.47:23
+    devices:
+        - /dev/ttyS0:/dev/ttyS0
+
+networks:
+  swarm-network:
+    external: true
