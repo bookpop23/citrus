@@ -12,6 +12,8 @@ services:
         protocol: tcp
     volumes:
       - /mnt/docker/appdata/infinitude/state:/infinitude/state
+      - /run/udev:/run/udev:ro
+      - /dev:/dev
     environment:
       - APP_SECRET=Pogotudinal
       - PASS_REQS=300
@@ -19,5 +21,7 @@ services:
       - LOGLEVEL=debug
       - SERIAL_TTY=/dev/ttySC0
       #- SERIAL_SOCKET=192.168.1.47:23
-    devices:
-      - "/dev/ttySC0:/dev/ttySC0"
+    device_cgroup_rules:
+      - 'c 236:* rmw'
+   # devices:
+   #   - "/dev/ttySC0:/dev/ttySC0"
