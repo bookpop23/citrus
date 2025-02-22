@@ -20,7 +20,3 @@ services:
       #- SERIAL_SOCKET=192.168.1.47:23
     devices:
         - /dev/ttyS0:/dev/ttyS0
-
-networks:
-  bridge:
-    external: true
