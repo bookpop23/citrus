@@ -4,6 +4,7 @@ services:
     container_name: infinitude
     hostname: infinitude
     restart: unless-stopped
+    privleged: true
     ports:
       - target: 3000
         published: 3010
