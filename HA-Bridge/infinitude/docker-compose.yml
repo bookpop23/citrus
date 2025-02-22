@@ -20,7 +20,7 @@ services:
       - PASS_REQS=300
       - MODE=development
       - LOGLEVEL=debug
-      - SERIAL_TTY=/dev/gpiomem
+      - SERIAL_TTY=/dev/ttySC0
       #- SERIAL_SOCKET=192.168.1.47:23
     devices:
       - /dev/ttySC0:/dev/ttySC0
