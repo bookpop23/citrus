@@ -18,12 +18,12 @@ services:
   pihole:
     image: pihole/pihole:latest
     hostname: pihole
-    healthcheck:
-      test: ["CMD", "curl", "-sS", "http://172.22.0.1/admin/index.php"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+    # healthcheck:
+    #   test: ["CMD", "curl", "-sS", "http://172.22.0.1:8091/admin/index.php"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 120s
     networks:
       - swarm-network  # Allow Swarm services to use Pi-hole as DNS
     ports:
