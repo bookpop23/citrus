@@ -2,7 +2,7 @@ services:
   unbound:
     image: sgaduuw/unbound:latest
     deploy:
-      mode: global
+      replicas: 2
     networks:
       - swarm-network
     volumes:
@@ -46,7 +46,8 @@ services:
       - SYS_TIME
       - SYS_NICE
     depends_on:
-      - pihole_unbound
+      unbound:
+        condition: service_healthy
     volumes:
       - $DOCKERDIR/appdata/pihole/pihole-data:/etc/pihole/
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
