@@ -46,8 +46,8 @@ services:
       - SYS_TIME
       - SYS_NICE
     depends_on:
-      unbound:
-        condition: service_healthy
+        unbound:
+          condition: service_healthy
     volumes:
       - $DOCKERDIR/appdata/pihole/pihole-data:/etc/pihole/
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
@@ -62,11 +62,11 @@ services:
         - "traefik.http.routers.pihole.tls.certresolver=cloudflare"
         - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
-        #Attach the defined middleware to a router
+        # Attach the defined middleware to a router
         - "traefik.http.routers.pihole.middlewares=pihole-redirectregex"
-        #Define a middleware regex
+        # Define a middleware regex
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$HOSTNAME.$DOMAIN/$$"
-        #Define a replacement
+        # Define a replacement
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$HOSTNAME.$DOMAIN/admin/"
 
         # # Middleware to redirect `/` to `/admin`
@@ -79,4 +79,4 @@ services:
 
 networks:
   swarm-network:
-    external: true  # This allows Pi-hole to communicate with existing Swarm services
+    external: true  # This uses an existing Docker Swarm network to allow Pi-hole to communicate with other services in the Swarm
