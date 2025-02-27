@@ -25,7 +25,7 @@ services:
     #   retries: 3
     #   start_period: 120s
     depends_on:
-      unbound:
+      pihole_unbound:
         condition: service_healthy
     networks:
       - swarm-network  # Allow Swarm services to use Pi-hole as DNS
