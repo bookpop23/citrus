@@ -1,20 +1,4 @@
 services:
-  unbound:
-    image: sgaduuw/unbound:latest
-    deploy:
-      replicas: 2
-    networks:
-      - swarm-network
-    volumes:
-     - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
-    environment:
-      - UNBOUND_CACHEDB_BACKEND=redis
-    healthcheck:
-      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 30s
   pihole:
     image: pihole/pihole:latest
     hostname: pihole
@@ -25,7 +9,7 @@ services:
     #   retries: 3
     #   start_period: 120s
     depends_on:
-      pihole_unbound:
+      unbound:
         condition: service_healthy
     networks:
       - swarm-network  # Allow Swarm services to use Pi-hole as DNS
@@ -49,7 +33,7 @@ services:
       # FTLCONF_dns_listeningMode: 'all'
       # FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$HOSTNAME.$DOMAIN'
-      BLOCK_ICLOUD_PR: 'false'
+      BLOCK_ICLOUD_PR: false
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -82,6 +66,23 @@ services:
 
         # # Attach middleware to the router
         # - "traefik.http.routers.pihole.middlewares=pihole-redirect"
+
+  unbound:
+    image: sgaduuw/unbound:latest
+    deploy:
+      replicas: 2
+    networks:
+      - swarm-network
+    volumes:
+      - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
+    environment:
+      - UNBOUND_CACHEDB_BACKEND=redis
+    healthcheck:
+      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
 
 networks:
   swarm-network:
