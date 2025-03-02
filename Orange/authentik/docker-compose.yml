@@ -64,6 +64,50 @@ services:
       - $DOCKERDIR/appdata/authentik/media:/media
       - $DOCKERDIR/appdata/authentik/certs:/certs
       - $DOCKERDIR/appdata/authentik/custom-templates:/templates
+
+  whoami-individual:
+    image: traefik/whoami:latest
+    container_name: whoami-individual
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - traefik
+      - authentik_server
+      - authentik_worker
+    networks:
+      - swarm-network
+    environment:
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.whoami-individual-rtr.rule=Host(`whoami-individual.${DOMAIN}`)"
+      ## Middlewares
+      - "traefik.http.routers.whoami-individual-rtr.middlewares=forwardAuth-authentik@file"
+
+
+  whoami-catchall:
+    image: traefik/whoami:latest
+    container_name: whoami-catchall
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - traefik
+      - authentik_server
+      - authentik_worker
+    networks:
+      - swarm-network
+    environment:
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.whoami-catchall-rtr.rule=Host(`whoami-catchall.${DOMAIN}`)"
+      ## Middlewares
+      - "traefik.http.routers.whoami-catchall-rtr.middlewares=forwardAuth-authentik@file"
+
 networks:
   swarm-network:
     external: true
