@@ -72,9 +72,8 @@ services:
     security_opt:
       - no-new-privileges:true
     depends_on:
-      - traefik
-      - authentik_server
-      - authentik_worker
+      - server
+      - worker
     networks:
       - swarm-network
     environment:
@@ -89,7 +88,7 @@ services:
       ## HTTP Routers
       - traefik.http.routers.whoami-individual.rule=Host(`whoami-individual.${DOMAIN}`)
       ## Middlewares
-      - traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
+      #- traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
 
 
   whoami-catchall:
@@ -99,9 +98,8 @@ services:
     security_opt:
       - no-new-privileges:true
     depends_on:
-      - traefik
-      - authentik_server
-      - authentik_worker
+      - server
+      - worker
     networks:
       - swarm-network
     environment:
@@ -116,7 +114,7 @@ services:
       ## HTTP Routers
       - traefik.http.routers.whoami-catchall.rule=Host(`whoami-catchall.${DOMAIN}`)
       ## Middlewares
-      - traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
+      #- traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
 
 networks:
   swarm-network:
