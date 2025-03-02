@@ -39,6 +39,7 @@ services:
         - traefik.http.routers.ha.tls=true
         - traefik.http.routers.ha.tls.certresolver=cloudflare
         - traefik.http.routers.ha.service=ha
+        - traefik.http.routers.ha.middlewares=forwardAuth-authentik@file
         - traefik.http.services.ha.loadbalancer.server.port=8123
 networks:
   swarm-network:
