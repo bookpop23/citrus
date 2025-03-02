@@ -80,14 +80,17 @@ services:
     environment:
       - TZ=${TZ}
     labels:
-      - "traefik.enable=true"
-      - "traefik.entrypoints=web"
-      - "traefik.http.routers.service=whoami-individual-rtr"
-      - "traefik.http.services.whoami-individual-rtr.loadbalancer.server.port=80"
+      - traefik.enable=true
+      - traefik.entrypoints=websecure
+      - traefik.http.routers.service=whoami-individual
+      - traefik.http.routers.whoami-individual.service=whoami-individual
+      - traefik.http.routers.whoami-individual.tls=true
+      - traefik.http.routers.whoami-individual.tls.certresolver=cloudflare
+      - traefik.http.services.whoami-individual.loadbalancer.server.port=80"
       ## HTTP Routers
-      - "traefik.http.routers.whoami-individual-rtr.rule=Host(`whoami-individual.${DOMAIN}`)"
+      - traefik.http.routers.whoami-individual.rule=Host(`whoami-individual.${DOMAIN}`)
       ## Middlewares
-      - "traefik.http.routers.whoami-individual-rtr.middlewares=forwardAuth-authentik@file"
+      - traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
 
 
   whoami-catchall:
@@ -105,14 +108,17 @@ services:
     environment:
       - TZ=${TZ}
     labels:
-      - "traefik.enable=true"
-      - "traefik.entrypoints=web"
-      - "traefik.http.routers.service=whoami-catchall-rtr"
-      - "traefik.http.services.whoami-catchall-rtr.loadbalancer.server.port=80"
+      - traefik.enable=true
+      - traefik.entrypoints=websecure
+      - traefik.http.routers.service=whoami-catchall
+      - traefik.http.routers.whoami-catchall.service=whoami-catchall
+      - traefik.http.routers.whoami-catchall.tls=true
+      - traefik.http.routers.whoami-catchall.tls.certresolver=cloudflare
+      - traefik.http.services.whoami-catchall.loadbalancer.server.port=80"
       ## HTTP Routers
-      - "traefik.http.routers.whoami-catchall-rtr.rule=Host(`whoami-catchall.${DOMAIN}`)"
+      - traefik.http.routers.whoami-catchall.rule=Host(`whoami-catchall.${DOMAIN}`)
       ## Middlewares
-      - "traefik.http.routers.whoami-catchall-rtr.middlewares=forwardAuth-authentik@file"
+      - traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
 
 networks:
   swarm-network:
