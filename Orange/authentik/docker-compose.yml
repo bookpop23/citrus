@@ -81,6 +81,9 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.enable=true"
+      - "traefik.entrypoints=web"
+      - "traefik.http.routers.service=whoami-individual-rtr"
+      - "traefik.http.services.service.loadbalancer.server.port=80"
       ## HTTP Routers
       - "traefik.http.routers.whoami-individual-rtr.rule=Host(`whoami-individual.${DOMAIN}`)"
       ## Middlewares
@@ -103,6 +106,9 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.enable=true"
+      - "traefik.entrypoints=web"
+      - "traefik.http.routers.service=whoami-catchall-rtr"
+      - "traefik.http.services.service.loadbalancer.server.port=80"
       ## HTTP Routers
       - "traefik.http.routers.whoami-catchall-rtr.rule=Host(`whoami-catchall.${DOMAIN}`)"
       ## Middlewares
