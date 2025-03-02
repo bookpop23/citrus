@@ -78,17 +78,18 @@ services:
       - swarm-network
     environment:
       - TZ=${TZ}
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.whoami-individual.service=whoami-individual
-      - traefik.http.routers.whoami-individual.entrypoints=websecure
-      - traefik.http.routers.whoami-individual.tls=true
-      - traefik.http.routers.whoami-individual.tls.certresolver=cloudflare
-      - traefik.http.services.whoami-individual.loadbalancer.server.port=80
-      ## HTTP Routers
-      - traefik.http.routers.whoami-individual.rule=Host(`whoami-individual.${DOMAIN}`)
-      ## Middlewares
-      #- traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.whoami-individual.service=whoami-individual
+        - traefik.http.routers.whoami-individual.entrypoints=websecure
+        - traefik.http.routers.whoami-individual.tls=true
+        - traefik.http.routers.whoami-individual.tls.certresolver=cloudflare
+        - traefik.http.services.whoami-individual.loadbalancer.server.port=80
+        ## HTTP Routers
+        - traefik.http.routers.whoami-individual.rule=Host(`whoami-individual.${DOMAIN}`)
+        ## Middlewares
+        - traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
 
 
   whoami-catchall:
@@ -104,17 +105,18 @@ services:
       - swarm-network
     environment:
       - TZ=${TZ}
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.whoami-catchall.service=whoami-catchall
-      - traefik.http.routers.whoami-catchall.entrypoints=websecure
-      - traefik.http.routers.whoami-catchall.tls=true
-      - traefik.http.routers.whoami-catchall.tls.certresolver=cloudflare
-      - traefik.http.services.whoami-catchall.loadbalancer.server.port=80
-      ## HTTP Routers
-      - traefik.http.routers.whoami-catchall.rule=Host(`whoami-catchall.${DOMAIN}`)
-      ## Middlewares
-      #- traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.whoami-catchall.service=whoami-catchall
+        - traefik.http.routers.whoami-catchall.entrypoints=websecure
+        - traefik.http.routers.whoami-catchall.tls=true
+        - traefik.http.routers.whoami-catchall.tls.certresolver=cloudflare
+        - traefik.http.services.whoami-catchall.loadbalancer.server.port=80
+        ## HTTP Routers
+        - traefik.http.routers.whoami-catchall.rule=Host(`whoami-catchall.${DOMAIN}`)
+        ## Middlewares
+        - traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
 
 networks:
   swarm-network:
