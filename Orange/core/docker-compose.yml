@@ -125,7 +125,7 @@ services:
       - PUID=${PUID}
       - TZ=${TZ}
       - DN_API_KEY=fb11c148-eba1-417d-b14d-d93abf02c89f
-      - DN_UI_PASSWORD="reid.sprite:23WhiteCn!Star"
+      - "DN_UI_PASSWORD=reid.sprite:23WhiteCn!Star"
     ports:
       - target: 5454
         published: 5454
