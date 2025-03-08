@@ -132,7 +132,7 @@ services:
     volumes:
       - $DOCKERDIR/appdata/notifiarr/config:/config
       - /var/run/utmp:/var/run/utmp
-      -	/etc/machine-id:/etc/machine-id
+      - /etc/machine-id:/etc/machine-id
     deploy:
       mode: replicated 
       replicas: 1
