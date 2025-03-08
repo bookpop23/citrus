@@ -18,13 +18,15 @@ services:
       - $DOCKERDIR/appdata/redis/data:/data
     networks:
       - swarm-network
+    environement:
+      - PGID=${PGID}
+      - PUID=${PUID}
     restart: unless-stopped
     deploy:
       mode: replicated 
       replicas: 1
       labels:
         - traefik.enable=true
-
         # 6379/tcp
         - traefik.tcp.routers.redis.rule=HostSNI(`*`)
         - traefik.tcp.routers.redis.entrypoints=redis-tcp
@@ -45,6 +47,8 @@ services:
     networks:
       - swarm-network    
     environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
       - POSTGRES_USER=${PG_USER:?database username required}
       - POSTGRES_PASSWORD=${PG_PASS:?database password required}
 
@@ -73,6 +77,8 @@ services:
     networks:
       - swarm-network
     environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
       - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=False
