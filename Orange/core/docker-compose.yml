@@ -21,6 +21,7 @@ services:
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
+      - TZ=${TZ}
     restart: unless-stopped
     deploy:
       mode: replicated 
@@ -49,9 +50,9 @@ services:
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
+      - TZ=${TZ}
       - POSTGRES_USER=${PG_USER:?database username required}
       - POSTGRES_PASSWORD=${PG_PASS:?database password required}
-
     ports:
       - target: 5432
         published: 5432
@@ -79,6 +80,7 @@ services:
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
+      - TZ=${TZ}
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
       - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=False
@@ -88,7 +90,6 @@ services:
       - target: 80
         published: 5050
         mode: ingress
-
     volumes:
       - $DOCKERDIR/appdata/pgadmin4/data:/var/lib/pgadmin
       - $DOCKERDIR/appdata/pgadmin4/config_local.py:/pgadmin4/config_local.py
@@ -112,50 +113,37 @@ services:
     ports:
       - 8080:8080
   
-#  healthchecks:
-#    image: healthchecks/healthchecks:latest
-#    container_name: healthchecks
-#    depends_on:
-#      - postgresql
-#    restart: unless-stopped
-#    networks:
-#      - swarm-network
-#    environment:
-#      - ALLOWED_HOSTS=healthchecks.$HOSTNAME.$DOMAIN
-#      - DB=postgres
-#      - DB_HOST=postgresql
-#      - DB_PORT=5432
-#      - DB_NAME=hc
-#      - DB_USER=reid.sprite
-#      - DB_PASSWORD=${PG_PASS:?database password required}
-#      - DEBUG=True
-#      - DEFAULT_FROM_EMAIL=reid@reidsprite.com
-#      - EMAIL_HOST=smtp.gmail.com
-#      - EMAIL_HOST_PASSWORD="fadi kuye akvd bgrf"
-#      - EMAIL_HOST_USER=reid@reidsprite.com
-#      - EMAIL_PORT=587
-#      - EMAIL_USE_TLS=True
-#      - SECRET_KEY=ahyuargvhu9eq0ghadufi0dfhva9p
-#      - SITE_ROOT=https://healthchecks.$HOSTNAME.$DOMAIN
-#    ports:
-#      - target: 8000
-#        published: 8898
-#        protocol: tcp
-#    ports:
-#      - 18000:8000
-#    volumes:
-#      - $DOCKERDIR/appdata/healthchecks/data:/data
-#    deploy:
-#      mode: replicated 
-#      replicas: 1
-#      labels:
-#        - traefik.enable=true
-#        - traefik.http.routers.healthchecks.rule=Host(`healthchecks.$HOSTNAME.$DOMAIN`)
-#        - traefik.http.routers.healthchecks.entrypoints=websecure
-#        - traefik.http.routers.healthchecks.tls=true
-#        - traefik.http.routers.healthchecks.tls.certresolver=cloudflare
-#        - traefik.http.routers.healthchecks.service=healthchecks
-#        - traefik.http.services.healthchecks.loadbalancer.server.port=8000
+  notifiarr:
+    image: notifiarr/notifiarr:latest
+    container_name: notifiarr
+    hostname: notifiarr-orange
+    restart: unless-stopped
+    networks:
+      - swarm-network
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+    ports:
+      - target: 5454
+        published: 5454
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - $DOCKERDIR/appdata/notifiarr/config:/config
+      - /var/run/utmp:/var/run/utmp
+      -	/etc/machine-id:/etc/machine-id
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.notifiarr-orange.rule=Host(`notifiarr-orange.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.notifiarr-orange.entrypoints=websecure
+        - traefik.http.routers.notifiarr-orange.tls=true
+        - traefik.http.routers.notifiarr-orange.tls.certresolver=cloudflare
+        - traefik.http.routers.notifiarr-orange.service=notifiarr-orange
+        - traefik.http.services.notifiarr-orange.loadbalancer.server.port=5454
 
   uptime-kuma:
     image: louislam/uptime-kuma:1
@@ -171,6 +159,7 @@ services:
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
+      - TZ=${TZ}
       - UPTIME_KUMA_CLOUDFLARED_TOKEN=$CLOUDFLARE_TOKEN   
     deploy:
       mode: replicated 
