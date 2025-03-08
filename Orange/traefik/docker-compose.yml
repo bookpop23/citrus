@@ -53,7 +53,7 @@ services:
         # - traefik.http.middlewares.test-auth.basicauth.usersfile=/run/secrets/user_pass_md5_file
 
         # traefik-https the actual router using HTTPS
-        - traefik.http.routers.traefik.rule=Host(`traefik.$HOSTNAME.$DOMAIN`) || Host(`traefik.$DOMAIN`)
+        - traefik.http.routers.traefik.rule=Host(`traefik.$HOSTNAME.$DOMAIN`) || Host(`traefik.$DOMAIN`) || Host(`172.22.0.1`)
         - traefik.http.routers.traefik.entrypoints=websecure
         - traefik.http.routers.traefik.tls=true
         - traefik.http.routers.traefik.tls.certresolver=cloudflare
@@ -86,23 +86,6 @@ services:
       - $DOCKERDIR/appdata/traefik/logs:/logs
     networks:
       - swarm-network
-
-  whoami:
-    image: traefik/whoami:latest
-    container_name: whoami
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges=true
-    depends_on:
-      - traefik
-    networks:
-      - swarm-network
-    environment:
-      - TZ=${TZ}
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)"
 
 #configs:
 #  traefik.yml:
