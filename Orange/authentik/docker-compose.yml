@@ -40,7 +40,7 @@ services:
         - traefik.http.services.authentik.loadbalancer.server.port=9000
   worker:
     # image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
-    image: ghcr.io/goauthentik/worker:latest
+    image: ghcr.io/goauthentik/server:latest
     restart: unless-stopped
     command: worker
     deploy:
