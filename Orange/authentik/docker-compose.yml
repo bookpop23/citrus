@@ -2,7 +2,8 @@
 
 services:
   server:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
+    #image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
+    image: ghcr.io/goauthentik/server:latest
     restart: unless-stopped
     command: server
     environment:
@@ -38,7 +39,8 @@ services:
         - traefik.http.routers.authentik.tls.certresolver=cloudflare
         - traefik.http.services.authentik.loadbalancer.server.port=9000
   worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
+    # image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
+    image: ghcr.io/goauthentik/worker:latest
     restart: unless-stopped
     command: worker
     deploy:
@@ -90,7 +92,6 @@ services:
         - traefik.http.routers.whoami-individual.rule=Host(`whoami-individual.${DOMAIN}`)
         ## Middlewares
         - traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
-
 
   whoami-catchall:
     image: traefik/whoami:latest
