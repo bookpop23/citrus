@@ -125,10 +125,7 @@ services:
       - PUID=${PUID}
       - TZ=${TZ}
     ports:
-      - target: 5454
-        published: 5454
-        protocol: tcp
-        mode: ingress
+      - 5454:5454
     volumes:
       - $DOCKERDIR/appdata/notifiarr/config:/config
       - /var/run/utmp:/var/run/utmp
