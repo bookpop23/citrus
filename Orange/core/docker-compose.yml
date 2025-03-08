@@ -114,7 +114,7 @@ services:
       - 8080:8080
   
   notifiarr:
-    image: notifiarr/notifiarr:latest
+    image: golift/notifiarr:latest
     container_name: notifiarr
     hostname: notifiarr-orange
     restart: unless-stopped
@@ -125,7 +125,10 @@ services:
       - PUID=${PUID}
       - TZ=${TZ}
     ports:
-      - 5454:5454
+      - target: 5454
+        published: 5454
+        protocol: tcp
+        mode: ingress
     volumes:
       - $DOCKERDIR/appdata/notifiarr/config:/config
       - /var/run/utmp:/var/run/utmp
