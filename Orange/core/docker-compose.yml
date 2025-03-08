@@ -18,7 +18,7 @@ services:
       - $DOCKERDIR/appdata/redis/data:/data
     networks:
       - swarm-network
-    environement:
+    environment:
       - PGID=${PGID}
       - PUID=${PUID}
     restart: unless-stopped
