@@ -124,6 +124,7 @@ services:
       - PGID=${PGID}
       - PUID=${PUID}
       - TZ=${TZ}
+      - DN_API_KEY=fb11c148-eba1-417d-b14d-d93abf02c89f
     ports:
       - target: 5454
         published: 5454
