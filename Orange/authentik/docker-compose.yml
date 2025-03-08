@@ -7,6 +7,9 @@ services:
     restart: unless-stopped
     command: server
     environment:
+      - TZ=${TZ}
+      - PGID=${PGID}
+      - PUID=${PUID}
       - AUTHENTIK_REDIS__HOST=redis
       - AUTHENTIK_POSTGRESQL__HOST=postgresql
       - AUTHENTIK_POSTGRESQL__USER=authentik
@@ -80,6 +83,8 @@ services:
       - swarm-network
     environment:
       - TZ=${TZ}
+      - PGID=${PGID}
+      - PUID=${PUID}
     deploy:
       labels:
         - traefik.enable=true
