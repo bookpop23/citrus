@@ -3,29 +3,28 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Get Swarm leader status (only on one manager)
+    - name: Get Swarm manager info (only on managers)
       community.docker.docker_swarm_info:
       register: swarm_info
       changed_when: false
       ignore_errors: true
-      run_once: true
-      when: inventory_hostname in groups['orange'] and "'manager' in group_names"
+      when: "'manager' in group_names"
 
     - name: Debug - Show full Swarm info output
       debug:
         var: swarm_info
       when: swarm_info is defined
 
-    - name: Mark this node as leader if detected
+    - name: Identify Swarm leader from manager nodes
       set_fact:
         swarm_leader: "{{ inventory_hostname }}"
       when:
+        - "'manager' in group_names"
         - swarm_info is defined
         - swarm_info.swarm_facts is defined
-        - swarm_info.swarm_facts.Manager is defined
-        - swarm_info.swarm_facts.Leader is defined
-        - swarm_info.swarm_facts.Manager
-        - swarm_info.swarm_facts.Leader
+        - swarm_info.swarm_facts.ID is defined
+        - swarm_info.swarm_facts.ID in hostvars[inventory_hostname].ansible_swarm_node_id
+
 
 - name: Identify and distribute Swarm leader
   hosts: orange
@@ -35,14 +34,14 @@
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'swarm_leader') | select('defined') | list | first | default('') }}"
 
-    - name: Fail if no Swarm leader was found
-      fail:
-        msg: "No Swarm leader was detected. Ensure that at least one manager is online."
-      when: swarm_leader == ""
-
     - name: Debug - Confirm final Swarm leader
       debug:
         msg: "Final Swarm leader is {{ swarm_leader }}"
+
+    - name: Fail if no Swarm leader was found
+      fail:
+        msg: "No Swarm leader was detected. Ensure that at least one manager is online."
+      when: swarm_leader | length == 0
 
 
 - name: Identify and distribute Swarm leader
