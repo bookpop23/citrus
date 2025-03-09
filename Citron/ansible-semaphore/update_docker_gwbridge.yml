@@ -15,8 +15,7 @@
         swarm_leader: "{{ item.split()[0] }}"
       when: "'Leader' in item"
       with_items: "{{ swarm_leader_output.stdout_lines }}"
-      delegate_to: localhost
-      delegate_facts: true
+      delegate_facts: true  # Distribute the variable to all hosts
 
 - name: Process non-leader nodes
   hosts: orange
@@ -28,7 +27,7 @@
       command: docker swarm join-token -q {{ item }}
       register: swarm_tokens
       changed_when: false
-      when: inventory_hostname == hostvars['localhost']['swarm_leader']
+      when: inventory_hostname == swarm_leader
       loop:
         - worker
         - manager
@@ -37,13 +36,13 @@
       set_fact:
         worker_token: "{{ swarm_tokens.results[0].stdout }}"
         manager_token: "{{ swarm_tokens.results[1].stdout }}"
-      when: inventory_hostname == hostvars['localhost']['swarm_leader']
+      when: inventory_hostname == swarm_leader
 
     - name: Distribute tokens to all nodes
       set_fact:
-        worker_token: "{{ hostvars['localhost']['worker_token'] }}"
-        manager_token: "{{ hostvars['localhost']['manager_token'] }}"
-        swarm_leader_ip: "{{ hostvars['localhost']['swarm_leader'] }}"
+        worker_token: "{{ hostvars[swarm_leader]['worker_token'] }}"
+        manager_token: "{{ hostvars[swarm_leader]['manager_token'] }}"
+        swarm_leader_ip: "{{ hostvars[swarm_leader].get('ansible_host', swarm_leader) }}"
 
     - name: Get Swarm node role
       command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" {{ inventory_hostname }}
@@ -52,11 +51,11 @@
 
     - name: Skip the leader until last
       meta: end_play
-      when: inventory_hostname == hostvars['localhost']['swarm_leader']
+      when: inventory_hostname == swarm_leader
 
     - name: Demote non-leader managers
       command: docker node demote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != hostvars['localhost']['swarm_leader']"
+      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
 
     - name: Leave the Swarm (abort if it fails)
       command: docker swarm leave
@@ -79,14 +78,14 @@
 
     - name: Rejoin the Swarm as a worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      when: inventory_hostname != hostvars['localhost']['swarm_leader']
+      when: inventory_hostname != swarm_leader
 
     - name: Promote back to manager if originally a manager
       command: docker node promote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != hostvars['localhost']['swarm_leader']"
+      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
 
 - name: Process the Swarm leader last
-  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
+  hosts: "{{ swarm_leader }}"
   serial: 1
   become: yes
   tasks:
