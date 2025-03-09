@@ -38,12 +38,12 @@
         swarm_manager_ip: "{{ hostvars[swarm_manager].get('ansible_host', swarm_manager) }}"
 
     - name: Get Swarm node information
-      command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" $(hostname)
+      command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" {{ inventory_hostname }}
       register: node_role
       changed_when: false
 
     - name: Demote node if it's a manager (except swarm reference manager)
-      command: docker node demote $(hostname)
+      command: docker node demote {{ inventory_hostname }}
       when: "'manager' in node_role.stdout and inventory_hostname != swarm_manager"
 
     - name: Have node leave the Swarm
@@ -61,5 +61,5 @@
       when: inventory_hostname != swarm_manager
 
     - name: Promote back to manager if previously a manager (except sweet-orange)
-      command: docker node promote $(hostname)
+      command: docker node promote {{ inventory_hostname }}
       when: "'manager' in node_role.stdout and inventory_hostname not in ['sweet-orange', swarm_manager]"
