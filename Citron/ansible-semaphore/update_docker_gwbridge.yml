@@ -3,13 +3,18 @@
   gather_facts: no
   become: yes
   tasks:
+    - name: Ensure at least one manager exists before proceeding
+      fail:
+        msg: "No Swarm managers detected. Ensure at least one node is a manager."
+      when: groups['orange'] | select('search', 'manager') | list | length == 0
+
     - name: Get Swarm manager info (run only on first available manager)
       community.docker.docker_swarm_info:
       register: swarm_info
       changed_when: false
       ignore_errors: true
-      run_once: true  # Ensures only one manager runs this task
-      when: inventory_hostname in groups['orange'] and "'manager' in group_names"
+      run_once: true
+      when: inventory_hostname in groups['orange']
 
     - name: Debug - Show full Swarm info output
       debug:
@@ -23,14 +28,7 @@
         - swarm_info is defined
         - swarm_info.swarm_facts is defined
         - swarm_info.swarm_facts.ID is defined
-        - swarm_info.swarm_facts.JoinTokens is defined  # Ensures this node is in Swarm
-
-
-- name: Fail if no Swarm managers exist
-  fail:
-    msg: "No Swarm managers detected. Ensure that at least one node is a manager."
-  when: groups['orange'] | select('search', 'manager') | list | length == 0
-
+        - swarm_info.swarm_facts.JoinTokens is defined  # Ensures node is part of Swarm
 
 - name: Identify and distribute Swarm leader
   hosts: orange
@@ -48,7 +46,6 @@
       fail:
         msg: "No Swarm leader was detected. Ensure that at least one manager is online."
       when: swarm_leader | length == 0
-
 
 - name: Define network configuration
   hosts: orange
