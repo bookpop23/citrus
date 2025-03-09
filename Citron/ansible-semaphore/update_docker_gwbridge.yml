@@ -16,24 +16,20 @@
 
     - name: Mark this node as leader if detected
       set_fact:
-        detected_leader: "{{ inventory_hostname }}"
+        swarm_leader: "{{ inventory_hostname }}"
       when: swarm_info.swarm_facts.Manager and swarm_info.swarm_facts.Leader
 
 - name: Identify and distribute Swarm leader
   hosts: orange
   gather_facts: no
   tasks:
-    - name: Find first detected leader
-      run_once: true
+    - name: Find first detected leader and store on all nodes
       set_fact:
-        swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first }}"
-      delegate_to: localhost
-      delegate_facts: true
+        swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'swarm_leader') | select('defined') | list | first }}"
 
     - name: Debug - Confirm final Swarm leader
-      run_once: true
       debug:
-        msg: "Final Swarm leader is {{ hostvars['localhost']['swarm_leader'] }}"
+        msg: "Final Swarm leader is {{ swarm_leader }}"
 
 - name: Define network configuration
   hosts: orange
@@ -51,7 +47,7 @@
             com.docker.network.bridge.name: docker_gwbridge
 
 - name: Fetch and distribute Swarm join tokens
-  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
+  hosts: "{{ swarm_leader }}"
   become: yes
   gather_facts: no
   tasks:
@@ -60,7 +56,7 @@
       register: swarm_tokens
       changed_when: false
 
-    - name: Distribute Swarm join tokens
+    - name: Distribute Swarm join tokens to all nodes
       set_fact:
         worker_token: "{{ swarm_tokens.worker_join_token }}"
         manager_token: "{{ swarm_tokens.manager_join_token }}"
@@ -74,7 +70,7 @@
   tasks:
     - name: Skip leader node (processed last)
       meta: end_play
-      when: inventory_hostname == hostvars['localhost']['swarm_leader']
+      when: inventory_hostname == swarm_leader
 
     - name: Get node role
       community.docker.docker_swarm_info:
@@ -91,7 +87,7 @@
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: worker
-      when: node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != hostvars['localhost']['swarm_leader']
+      when: node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != swarm_leader
 
     - name: Leave Swarm (abort if it fails)
       community.docker.docker_swarm:
@@ -119,16 +115,16 @@
         join_token: "{{ worker_token }}"
         remote_addrs:
           - "{{ swarm_leader_ip }}"
-      when: inventory_hostname != hostvars['localhost']['swarm_leader']
+      when: inventory_hostname != swarm_leader
 
     - name: Promote back to manager if originally a manager
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: manager
-      when: node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != hostvars['localhost']['swarm_leader']
+      when: node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != swarm_leader
 
 - name: Update Swarm Leader (Processed Last)
-  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
+  hosts: "{{ swarm_leader }}"
   serial: 1
   become: yes
   tasks:
