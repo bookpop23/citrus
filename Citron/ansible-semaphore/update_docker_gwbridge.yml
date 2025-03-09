@@ -9,16 +9,18 @@
       register: swarm_leader_output
       changed_when: false
 
-    - name: Set Swarm leader fact
+    - name: Set Swarm leader fact globally
+      run_once: true
       set_fact:
         swarm_leader: "{{ item.split()[0] }}"
       when: "'Leader' in item"
       with_items: "{{ swarm_leader_output.stdout_lines }}"
-      run_once: true
+      delegate_to: localhost
+      delegate_facts: true
 
 - name: Process non-leader nodes
   hosts: orange
-  serial: 1
+  serial: 1  # Ensures only one node is processed at a time
   become: yes
   gather_facts: yes
   tasks:
@@ -39,11 +41,11 @@
 
     - name: Distribute tokens to all nodes
       set_fact:
-        worker_token: "{{ hostvars[hostvars['localhost']['swarm_leader']]['worker_token'] }}"
-        manager_token: "{{ hostvars[hostvars['localhost']['swarm_leader']]['manager_token'] }}"
-        swarm_leader_ip: "{{ hostvars[hostvars['localhost']['swarm_leader']].get('ansible_host', hostvars['localhost']['swarm_leader']) }}"
+        worker_token: "{{ hostvars['localhost']['worker_token'] }}"
+        manager_token: "{{ hostvars['localhost']['manager_token'] }}"
+        swarm_leader_ip: "{{ hostvars['localhost']['swarm_leader'] }}"
 
-    - name: Get Swarm node information
+    - name: Get Swarm node role
       command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" {{ inventory_hostname }}
       register: node_role
       changed_when: false
@@ -52,25 +54,34 @@
       meta: end_play
       when: inventory_hostname == hostvars['localhost']['swarm_leader']
 
-    - name: Have non-leader managers step down
+    - name: Demote non-leader managers
       command: docker node demote {{ inventory_hostname }}
       when: "'manager' in node_role.stdout and inventory_hostname != hostvars['localhost']['swarm_leader']"
 
-    - name: Have node leave the Swarm
-      command: docker swarm leave --force
+    - name: Leave the Swarm (abort if it fails)
+      command: docker swarm leave
+      register: swarm_leave_result
+      failed_when: swarm_leave_result.rc != 0
 
     - name: Remove old docker_gwbridge network
       command: docker network rm docker_gwbridge
-      ignore_errors: yes
+      ignore_errors: yes  # Ignore errors if the network doesn’t exist
 
     - name: Create new docker_gwbridge network
-      command: "{{ new_docker_gwbridge_cmd }}"
+      command: >
+        docker network create
+        --driver bridge
+        --subnet=172.22.0.0/24
+        --ipv6
+        --subnet=2600:1702:6650:9b20:22::/80
+        --opt com.docker.network.bridge.name=docker_gwbridge
+        docker_gwbridge
 
     - name: Rejoin the Swarm as a worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
       when: inventory_hostname != hostvars['localhost']['swarm_leader']
 
-    - name: Promote back to manager if previously a manager
+    - name: Promote back to manager if originally a manager
       command: docker node promote {{ inventory_hostname }}
       when: "'manager' in node_role.stdout and inventory_hostname != hostvars['localhost']['swarm_leader']"
 
@@ -86,15 +97,24 @@
     - name: Demote the Swarm leader
       command: docker node demote {{ inventory_hostname }}
 
-    - name: Have the leader leave the Swarm
-      command: docker swarm leave --force
+    - name: Leave the Swarm (abort if it fails)
+      command: docker swarm leave
+      register: swarm_leave_result
+      failed_when: swarm_leave_result.rc != 0
 
     - name: Remove old docker_gwbridge network
       command: docker network rm docker_gwbridge
       ignore_errors: yes
 
     - name: Create new docker_gwbridge network
-      command: "{{ new_docker_gwbridge_cmd }}"
+      command: >
+        docker network create
+        --driver bridge
+        --subnet=172.22.0.0/24
+        --ipv6
+        --subnet=2600:1702:6650:9b20:22::/80
+        --opt com.docker.network.bridge.name=docker_gwbridge
+        docker_gwbridge
 
     - name: Rejoin leader as a manager
       command: docker swarm join --token {{ manager_token }} {{ groups['orange'] | difference([inventory_hostname]) | first }}:2377
