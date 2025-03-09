@@ -1,7 +1,9 @@
 - name: Update docker_gwbridge network on Raspberry Pi cluster
   hosts: orange
-  serial: 1  # Ensure changes happen one node at a time
+  serial: 1  # Process one node at a time
   become: yes
+  gather_facts: yes  # Ensure all host facts are collected
+
   vars:
     new_docker_gwbridge_cmd: >
       docker network create
@@ -11,7 +13,7 @@
       --subnet=2600:1702:6650:9b20:22::/80
       --opt com.docker.network.bridge.name=docker_gwbridge
       docker_gwbridge
-    swarm_manager: "bitter-orange"  # Designate a reference manager
+    swarm_manager: "bitter-orange"  # The designated Swarm manager
 
   tasks:
     - name: Fetch Swarm join tokens (Only on the manager)
@@ -33,6 +35,7 @@
       set_fact:
         worker_token: "{{ hostvars[swarm_manager]['worker_token'] }}"
         manager_token: "{{ hostvars[swarm_manager]['manager_token'] }}"
+        swarm_manager_ip: "{{ hostvars[swarm_manager].get('ansible_host', swarm_manager) }}"
 
     - name: Get Swarm node information
       command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" $(hostname)
@@ -54,7 +57,7 @@
       command: "{{ new_docker_gwbridge_cmd }}"
 
     - name: Rejoin the Swarm as a worker
-      command: docker swarm join --token {{ worker_token }} {{ hostvars[swarm_manager]['ansible_host'] }}:2377
+      command: docker swarm join --token {{ worker_token }} {{ swarm_manager_ip }}:2377
       when: inventory_hostname != swarm_manager
 
     - name: Promote back to manager if previously a manager (except sweet-orange)
