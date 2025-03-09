@@ -13,43 +13,54 @@
       --subnet=2600:1702:6650:9b20:22::/80
       --opt com.docker.network.bridge.name=docker_gwbridge
       docker_gwbridge
-    swarm_manager: "bitter-orange"  # Initial Swarm manager
-    backup_manager: "blood-orange"  # Backup manager to prevent cluster failure
 
   tasks:
-    - name: Fetch Swarm join tokens (Only on the manager)
+    - name: Determine the current Swarm leader
+      run_once: true
+      command: docker node ls --format "{{ '{{.Hostname}} {{.Leader}}' }}"
+      register: swarm_leader_output
+      changed_when: false
+
+    - name: Set Swarm leader fact
+      set_fact:
+        swarm_leader: "{{ item.split()[0] }}"
+      when: "'Leader' in item"
+      with_items: "{{ swarm_leader_output.stdout_lines }}"
+      run_once: true
+
+    - name: Fetch Swarm join tokens (Only on the leader)
       command: docker swarm join-token -q {{ item }}
       register: swarm_tokens
       changed_when: false
-      when: inventory_hostname == swarm_manager
+      when: inventory_hostname == swarm_leader
       loop:
         - worker
         - manager
 
-    - name: Set Swarm token facts (Only on the manager)
+    - name: Set Swarm token facts (Only on the leader)
       set_fact:
         worker_token: "{{ swarm_tokens.results[0].stdout }}"
         manager_token: "{{ swarm_tokens.results[1].stdout }}"
-      when: inventory_hostname == swarm_manager
+      when: inventory_hostname == swarm_leader
 
     - name: Distribute tokens to all nodes
       set_fact:
-        worker_token: "{{ hostvars[swarm_manager]['worker_token'] }}"
-        manager_token: "{{ hostvars[swarm_manager]['manager_token'] }}"
-        swarm_manager_ip: "{{ hostvars[swarm_manager].get('ansible_host', swarm_manager) }}"
+        worker_token: "{{ hostvars[swarm_leader]['worker_token'] }}"
+        manager_token: "{{ hostvars[swarm_leader]['manager_token'] }}"
+        swarm_leader_ip: "{{ hostvars[swarm_leader].get('ansible_host', swarm_leader) }}"
 
     - name: Get Swarm node information
       command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" {{ inventory_hostname }}
       register: node_role
       changed_when: false
 
-    - name: Promote backup manager if bitter-orange is being processed
-      command: docker node promote {{ backup_manager }}
-      when: inventory_hostname == swarm_manager
+    - name: Ensure the leader is processed last
+      meta: end_play
+      when: inventory_hostname == swarm_leader
 
-    - name: Demote node if it's a manager (except backup manager)
+    - name: Have non-leader managers step down
       command: docker node demote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname not in [swarm_manager, backup_manager]"
+      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
 
     - name: Have node leave the Swarm
       command: docker swarm leave --force
@@ -62,13 +73,37 @@
       command: "{{ new_docker_gwbridge_cmd }}"
 
     - name: Rejoin the Swarm as a worker
-      command: docker swarm join --token {{ worker_token }} {{ swarm_manager_ip }}:2377
-      when: inventory_hostname != swarm_manager
+      command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
+      when: inventory_hostname != swarm_leader
 
-    - name: Promote back to manager if previously a manager (except sweet-orange)
+    - name: Promote back to manager if previously a manager (except leader)
       command: docker node promote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname not in ['sweet-orange', swarm_manager]"
+      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
 
-    - name: If bitter-orange was modified, re-promote it to manager
-      command: docker node promote {{ swarm_manager }}
-      when: inventory_hostname == swarm_manager
+    - name: Process the Swarm leader last
+      hosts: "{{ swarm_leader }}"
+      serial: 1
+      become: yes
+      tasks:
+        - name: Ensure another manager exists before demoting the leader
+          command: docker node promote {{ groups['orange'] | difference([swarm_leader]) | first }}
+          run_once: true
+
+        - name: Demote the Swarm leader
+          command: docker node demote {{ swarm_leader }}
+
+        - name: Have the leader leave the Swarm
+          command: docker swarm leave --force
+
+        - name: Remove old docker_gwbridge network
+          command: docker network rm docker_gwbridge
+          ignore_errors: yes
+
+        - name: Create new docker_gwbridge network
+          command: "{{ new_docker_gwbridge_cmd }}"
+
+        - name: Rejoin leader as a manager
+          command: docker swarm join --token {{ manager_token }} {{ groups['orange'] | difference([swarm_leader]) | first }}:2377
+
+        - name: Promote leader back to manager
+          command: docker node promote {{ swarm_leader }}
