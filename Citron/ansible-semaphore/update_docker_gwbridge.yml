@@ -3,12 +3,13 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Get Swarm manager info (only on managers)
+    - name: Get Swarm manager info (run only on first available manager)
       community.docker.docker_swarm_info:
       register: swarm_info
       changed_when: false
       ignore_errors: true
-      when: "'manager' in group_names"
+      run_once: true  # Ensures only one manager runs this task
+      when: inventory_hostname in groups['orange'] and "'manager' in group_names"
 
     - name: Debug - Show full Swarm info output
       debug:
@@ -19,11 +20,16 @@
       set_fact:
         swarm_leader: "{{ inventory_hostname }}"
       when:
-        - "'manager' in group_names"
         - swarm_info is defined
         - swarm_info.swarm_facts is defined
         - swarm_info.swarm_facts.ID is defined
-        - swarm_info.swarm_facts.ID in hostvars[inventory_hostname].ansible_swarm_node_id
+        - swarm_info.swarm_facts.JoinTokens is defined  # Ensures this node is in Swarm
+
+
+- name: Fail if no Swarm managers exist
+  fail:
+    msg: "No Swarm managers detected. Ensure that at least one node is a manager."
+  when: groups['orange'] | select('search', 'manager') | list | length == 0
 
 
 - name: Identify and distribute Swarm leader
@@ -43,18 +49,6 @@
         msg: "No Swarm leader was detected. Ensure that at least one manager is online."
       when: swarm_leader | length == 0
 
-
-- name: Identify and distribute Swarm leader
-  hosts: orange
-  gather_facts: no
-  tasks:
-    - name: Find first detected leader and store on all nodes
-      set_fact:
-        swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'swarm_leader') | select('defined') | list | first }}"
-
-    - name: Debug - Confirm final Swarm leader
-      debug:
-        msg: "Final Swarm leader is {{ swarm_leader }}"
 
 - name: Define network configuration
   hosts: orange
