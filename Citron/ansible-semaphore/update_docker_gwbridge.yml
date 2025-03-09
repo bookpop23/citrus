@@ -1,4 +1,4 @@
-- name: Determine the current Swarm leader
+- name: Determine the current Swarm leader and set network config
   hosts: localhost
   gather_facts: no
   become: no
@@ -14,17 +14,28 @@
       when: "'Leader' in item"
       with_items: "{{ swarm_leader_output.stdout_lines }}"
 
-- name: Propagate Swarm leader fact to all nodes
+    - name: Define docker_gwbridge network configuration
+      set_fact:
+        docker_gwbridge_config: >
+          docker network create
+          --driver bridge
+          --subnet=172.22.0.0/24
+          --ipv6
+          --subnet=2600:1702:6650:9b20:22::/80
+          --opt com.docker.network.bridge.name=docker_gwbridge
+          docker_gwbridge
+
+- name: Propagate essential facts to all nodes
   hosts: orange
   gather_facts: no
-  become: no
   tasks:
-    - name: Set swarm leader on all nodes
+    - name: Set Swarm leader and network config on all nodes
       set_fact:
-        swarm_leader: "{{ hostvars['localhost']['swarm_leader'] }}"
+        swarm_leader: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
+        docker_gwbridge_config: "{{ hostvars[ansible_play_hosts[0]]['docker_gwbridge_config'] }}"
 
-- name: Fetch Swarm join tokens
-  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
+- name: Fetch and distribute Swarm join tokens
+  hosts: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
   become: yes
   gather_facts: no
   tasks:
@@ -36,29 +47,29 @@
         - worker
         - manager
 
-    - name: Store Swarm join tokens
+    - name: Store Swarm join tokens and leader IP
       set_fact:
         worker_token: "{{ swarm_tokens.results[0].stdout }}"
         manager_token: "{{ swarm_tokens.results[1].stdout }}"
+        swarm_leader_ip: "{{ ansible_host | default(inventory_hostname) }}"
 
 - name: Distribute Swarm join tokens to all nodes
   hosts: orange
   gather_facts: no
-  become: no
   tasks:
     - name: Set Swarm join tokens on all nodes
       set_fact:
         worker_token: "{{ hostvars[swarm_leader]['worker_token'] }}"
         manager_token: "{{ hostvars[swarm_leader]['manager_token'] }}"
-        swarm_leader_ip: "{{ hostvars[swarm_leader]['ansible_host'] | default(swarm_leader) }}"
+        swarm_leader_ip: "{{ hostvars[swarm_leader]['swarm_leader_ip'] }}"
 
-- name: Process non-leader nodes
+- name: Update Non-Leader Nodes
   hosts: orange
   serial: 1
   become: yes
   gather_facts: yes
   tasks:
-    - name: Skip the leader until last
+    - name: Skip leader node (processed last)
       meta: end_play
       when: inventory_hostname == swarm_leader
 
@@ -76,14 +87,7 @@
       ignore_errors: yes
 
     - name: Create new docker_gwbridge network
-      command: >
-        docker network create
-        --driver bridge
-        --subnet=172.22.0.0/24
-        --ipv6
-        --subnet=2600:1702:6650:9b20:22::/80
-        --opt com.docker.network.bridge.name=docker_gwbridge
-        docker_gwbridge
+      command: "{{ docker_gwbridge_config }}"
 
     - name: Rejoin the Swarm as a worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
@@ -93,16 +97,16 @@
       command: docker node promote {{ inventory_hostname }}
       when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
 
-- name: Process the Swarm leader last
+- name: Update Swarm Leader (Processed Last)
   hosts: "{{ swarm_leader }}"
   serial: 1
   become: yes
   tasks:
-    - name: Ensure another manager exists before demoting the leader
+    - name: Ensure another manager exists before demoting leader
       command: docker node promote {{ groups['orange'] | difference([inventory_hostname]) | first }}
       run_once: true
 
-    - name: Demote the Swarm leader
+    - name: Demote Swarm leader
       command: docker node demote {{ inventory_hostname }}
 
     - name: Leave the Swarm (abort if it fails)
@@ -115,14 +119,7 @@
       ignore_errors: yes
 
     - name: Create new docker_gwbridge network
-      command: >
-        docker network create
-        --driver bridge
-        --subnet=172.22.0.0/24
-        --ipv6
-        --subnet=2600:1702:6650:9b20:22::/80
-        --opt com.docker.network.bridge.name=docker_gwbridge
-        docker_gwbridge
+      command: "{{ docker_gwbridge_config }}"
 
     - name: Rejoin leader as a manager
       command: docker swarm join --token {{ manager_token }} {{ groups['orange'] | difference([inventory_hostname]) | first }}:2377
@@ -138,12 +135,10 @@
         - worker
         - manager
 
-    - name: Store new Swarm join tokens
+    - name: Distribute new Swarm join tokens to all nodes
       set_fact:
         worker_token: "{{ new_swarm_tokens.results[0].stdout }}"
         manager_token: "{{ new_swarm_tokens.results[1].stdout }}"
-
-    - name: Distribute new Swarm tokens to all nodes
-      set_fact:
-        worker_token: "{{ hostvars[swarm_leader]['worker_token'] }}"
-        manager_token: "{{ hostvars[swarm_leader]['manager_token'] }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      with_items: "{{ groups['orange'] }}"
