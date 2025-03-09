@@ -3,71 +3,44 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Debug - Show current inventory hostname
-      debug:
-        msg: "Running on {{ inventory_hostname }}"
-
-    - name: Check if Docker is installed
-      command: docker --version
-      register: docker_version
-      changed_when: false
-      ignore_errors: true
-
-    - name: Fail if Docker is not installed
-      fail:
-        msg: "Docker is not installed on {{ inventory_hostname }}."
-      when: docker_version.rc != 0
-
-    - name: Check if Docker is running
-      command: systemctl is-active docker
-      register: docker_status
-      changed_when: false
-      ignore_errors: true
-
-    - name: Fail if Docker is not running
-      fail:
-        msg: "Docker is not running on {{ inventory_hostname }}. Ensure Docker is installed and running."
-      when: docker_status.stdout != "active"
-
-    - name: Check if this node is part of a Swarm
-      command: docker info --format "{{ '{{.Swarm.LocalNodeState}}' }}"
-      register: swarm_status
-      changed_when: false
-      ignore_errors: true
-
-    - name: Fail if this node is not part of a Swarm
-      fail:
-        msg: "This node is not part of a Swarm. Ensure the node has joined a Swarm."
-      when: swarm_status.stdout not in ["active", "manager"]
-
-    - name: Get the current Swarm leader (run on first available manager)
-      run_once: true
+    - name: Get Swarm leader status on each node
       command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
       register: leader_status
       changed_when: false
       ignore_errors: true
 
-    - name: Ensure leader_status is valid
-      run_once: true
-      fail:
-        msg: "Failed to detect Swarm leader. leader_status.stdout is empty or invalid."
-      when: leader_status.stdout is not defined or leader_status.stdout | trim == ""
+    - name: Debug - Show leader status output
+      debug:
+        msg: "{{ inventory_hostname }} leader status: {{ leader_status.stdout | default('UNDEFINED') }}"
 
-    - name: Extract and store Swarm leader
-      run_once: true
+    - name: Mark this node as leader if detected
       set_fact:
-        swarm_leader: "{{ inventory_hostname }}"
+        detected_leader: "{{ inventory_hostname }}"
       when: leader_status.stdout | trim == "true"
 
-    - name: Ensure swarm_leader is defined before distributing
+- name: Select the first detected leader and store it
+  hosts: orange
+  gather_facts: no
+  tasks:
+    - name: Ensure a leader was found
       run_once: true
       fail:
-        msg: "Swarm leader variable is still undefined. Something went wrong with leader detection."
-      when: swarm_leader is not defined
+        msg: "No Swarm leader detected. Check Swarm quorum."
+      when: groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | length == 0
+
+    - name: Store the first detected leader
+      run_once: true
+      set_fact:
+        swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first }}"
+
+    - name: Debug - Confirm final detected leader
+      run_once: true
+      debug:
+        msg: "Final Swarm leader is {{ swarm_leader }}"
 
     - name: Distribute Swarm leader fact to all nodes
       set_fact:
-        swarm_leader: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
+        swarm_leader: "{{ hostvars[groups['orange'][0]]['swarm_leader'] }}"
 
 - name: Define network configuration
   hosts: orange
