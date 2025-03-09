@@ -28,19 +28,17 @@
         msg: "No Swarm leader detected. Check Swarm quorum."
       when: groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | length == 0
 
-    - name: Store the first detected leader
+    - name: Store the first detected leader globally
       run_once: true
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first }}"
+      delegate_to: localhost
+      delegate_facts: true
 
     - name: Debug - Confirm final detected leader
       run_once: true
       debug:
-        msg: "Final Swarm leader is {{ swarm_leader }}"
-
-    - name: Distribute Swarm leader fact to all nodes
-      set_fact:
-        swarm_leader: "{{ hostvars[groups['orange'][0]]['swarm_leader'] }}"
+        msg: "Final Swarm leader is {{ hostvars['localhost']['swarm_leader'] }}"
 
 - name: Define network configuration
   hosts: orange
@@ -58,7 +56,7 @@
           docker_gwbridge
 
 - name: Fetch and distribute Swarm join tokens
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
   become: yes
   gather_facts: no
   tasks:
@@ -84,11 +82,11 @@
   tasks:
     - name: Skip leader node (processed last)
       meta: end_play
-      when: inventory_hostname == swarm_leader
+      when: inventory_hostname == hostvars['localhost']['swarm_leader']
 
     - name: Demote non-leader managers
       command: docker node demote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
+      when: "'manager' in node_role.stdout and inventory_hostname != hostvars['localhost']['swarm_leader']"
 
     - name: Leave the Swarm (abort if it fails)
       command: docker swarm leave
@@ -104,14 +102,14 @@
 
     - name: Rejoin the Swarm as a worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      when: inventory_hostname != swarm_leader
+      when: inventory_hostname != hostvars['localhost']['swarm_leader']
 
     - name: Promote back to manager if originally a manager
       command: docker node promote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
+      when: "'manager' in node_role.stdout and inventory_hostname != hostvars['localhost']['swarm_leader']"
 
 - name: Update Swarm Leader (Processed Last)
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
   serial: 1
   become: yes
   tasks:
