@@ -1,34 +1,39 @@
 ###############################################################################
-# Step 1: Leader Detection - Run on all nodes (workers will error and be skipped)
+# Step 1: Detect the Swarm Leader on Manager Nodes and Mark It Locally
 ###############################################################################
-- name: Determine the current Swarm leader (raw detection)
+- name: Determine the current Swarm leader (detection on managers)
   hosts: orange
   gather_facts: no
   become: yes
   tasks:
-    - name: Get self leader status (managers return "true"; workers error)
-      command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
-      register: leader_status
+    - name: Get Swarm info from this node (only managers will succeed)
+      community.docker.docker_swarm_info:
+      register: swarm_info
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show leader status for this node
+    - name: Debug - Show full Swarm info output for this node
       debug:
-        msg: "{{ inventory_hostname }} leader status: {{ leader_status.stdout | default('') }}"
+        msg: "{{ inventory_hostname }}: {{ swarm_info }}"
+      when: swarm_info is defined
 
-    - name: Mark this node as leader if detected
+    - name: Mark this node as leader if it is the Swarm leader
       set_fact:
         detected_leader: "{{ inventory_hostname }}"
-      when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
+      when: 
+        - swarm_info is defined
+        - swarm_info.swarm_facts is defined
+        - (swarm_info.swarm_facts.Leader | default(false)) | bool
+      # Note: On a manager, the field .Leader will be true only on the leader node.
 
 ###############################################################################
-# Step 2: Identify and Distribute the Swarm Leader
+# Step 2: Aggregate and Distribute the Swarm Leader
 ###############################################################################
 - name: Identify and distribute Swarm leader
   hosts: orange
   gather_facts: no
   tasks:
-    - name: Find first detected leader and store on all nodes
+    - name: Find first detected leader and store it on all nodes
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
     - name: Debug - Confirm final Swarm leader
@@ -36,11 +41,11 @@
         msg: "Final Swarm leader is {{ swarm_leader }}"
     - name: Fail if no Swarm leader was found
       fail:
-        msg: "No Swarm leader was detected. Ensure that at least one manager is online."
+        msg: "No Swarm leader was detected. Ensure at least one manager is online."
       when: swarm_leader | length == 0
 
 ###############################################################################
-# Step 3: Define Network Configuration
+# Step 3: Define Network Configuration for docker_gwbridge
 ###############################################################################
 - name: Define network configuration
   hosts: orange
@@ -58,26 +63,27 @@
             com.docker.network.bridge.name: docker_gwbridge
 
 ###############################################################################
-# Step 4: Fetch and Distribute Swarm Join Tokens (run on the leader)
+# Step 4: Fetch and Distribute Swarm Join Tokens (Delegated to Leader)
 ###############################################################################
 - name: Fetch and distribute Swarm join tokens
-  hosts: "{{ swarm_leader }}"
-  become: yes
+  hosts: orange
   gather_facts: no
+  become: yes
   tasks:
-    - name: Fetch Swarm join tokens using docker_swarm_info
+    - name: Fetch Swarm join tokens on leader
+      delegate_to: "{{ swarm_leader }}"
       community.docker.docker_swarm_info:
       register: swarm_tokens
       changed_when: false
 
-    - name: Distribute Swarm join tokens
+    - name: Distribute Swarm join tokens to all nodes
       set_fact:
         worker_token: "{{ swarm_tokens.worker_join_token }}"
         manager_token: "{{ swarm_tokens.manager_join_token }}"
         swarm_leader_ip: "{{ ansible_host | default(inventory_hostname) }}"
 
 ###############################################################################
-# Step 5: Update Non-Leader Nodes (One at a Time)
+# Step 5: Update Non-Leader Nodes (Serially, One at a Time)
 ###############################################################################
 - name: Update Non-Leader Nodes
   hosts: orange
@@ -85,11 +91,11 @@
   become: yes
   gather_facts: no
   tasks:
-    - name: Skip leader node (processed in leader play later)
+    - name: Skip leader node (processed later)
       meta: end_play
       when: inventory_hostname == swarm_leader
 
-    - name: Get node role using docker_swarm_info (for managers only)
+    - name: Get node role info
       community.docker.docker_swarm_info:
       register: node_role_info
       changed_when: false
@@ -98,15 +104,19 @@
     - name: Debug - Show node role
       debug:
         msg: "{{ inventory_hostname }} role: {{ node_role_info.swarm_facts.NodeRole | default('UNDEFINED') }}"
-      when: node_role_info.swarm_facts is defined
+      when: node_role_info is defined and node_role_info.swarm_facts is defined
 
     - name: Demote node if it is a manager
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: worker
-      when: node_role_info.swarm_facts is defined and node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != swarm_leader
+      when:
+        - node_role_info is defined
+        - node_role_info.swarm_facts is defined
+        - node_role_info.swarm_facts.NodeRole == "manager"
+        - inventory_hostname != swarm_leader
 
-    - name: Leave the Swarm (fail if it doesn't succeed)
+    - name: Leave the Swarm (fail if unsuccessful)
       community.docker.docker_swarm:
         state: absent
       register: swarm_leave_result
@@ -134,11 +144,15 @@
           - "{{ swarm_leader_ip }}"
       when: inventory_hostname != swarm_leader
 
-    - name: Promote back to manager if node was originally a manager
+    - name: Promote node back to manager if it was originally a manager
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: manager
-      when: node_role_info.swarm_facts is defined and node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != swarm_leader
+      when:
+        - node_role_info is defined
+        - node_role_info.swarm_facts is defined
+        - node_role_info.swarm_facts.NodeRole == "manager"
+        - inventory_hostname != swarm_leader
 
 ###############################################################################
 # Step 6: Update Swarm Leader (Processed Last)
@@ -159,7 +173,7 @@
         hostname: "{{ inventory_hostname }}"
         role: worker
 
-    - name: Leave the Swarm (fail if it doesn't succeed)
+    - name: Leave the Swarm (fail if unsuccessful)
       community.docker.docker_swarm:
         state: absent
       register: leader_leave_result
@@ -191,7 +205,7 @@
         hostname: "{{ inventory_hostname }}"
         role: manager
 
-    - name: Fetch new Swarm join tokens
+    - name: Fetch new Swarm join tokens (refresh tokens)
       community.docker.docker_swarm_info:
       register: new_swarm_tokens
       changed_when: false
