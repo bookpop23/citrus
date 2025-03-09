@@ -54,28 +54,21 @@
 
     - name: Get the current Swarm leader (run on first available manager)
       run_once: true
-      command: docker node ls --format "{{ '{{.Hostname}} {{.Leader}}' }}"
-      register: swarm_leader_output
+      command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
+      register: leader_status
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show raw Swarm leader output
+    - name: Debug - Show leader status
       run_once: true
       debug:
-        var: swarm_leader_output
-
-    - name: Fail if Swarm leader output is missing or invalid
-      run_once: true
-      fail:
-        msg: "Failed to determine Swarm leader. Check if the command ran on a valid manager."
-      when: swarm_leader_output.stdout_lines is not defined or swarm_leader_output.stdout_lines | length == 0
+        var: leader_status.stdout
 
     - name: Extract and store Swarm leader
       run_once: true
       set_fact:
-        swarm_leader: "{{ item.split()[0] }}"
-      when: "'Leader' in item"
-      with_items: "{{ swarm_leader_output.stdout_lines }}"
+        swarm_leader: "{{ inventory_hostname }}"
+      when: leader_status.stdout == "true"
 
     - name: Debug - Confirm detected Swarm leader
       run_once: true
