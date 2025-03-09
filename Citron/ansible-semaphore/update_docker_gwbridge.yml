@@ -1,20 +1,31 @@
-- name: Determine the current Swarm leader and set network config
-  hosts: localhost
+- name: Determine the current Swarm leader
+  hosts: orange
   gather_facts: no
-  become: no
+  become: yes
   tasks:
-    - name: Get the current Swarm leader
+    - name: Get the current Swarm leader (run on first available manager)
+      run_once: true
       command: docker node ls --format "{{ '{{.Hostname}} {{.Leader}}' }}"
       register: swarm_leader_output
       changed_when: false
+      when: "'manager' in group_names"
 
     - name: Extract and store Swarm leader
+      run_once: true
       set_fact:
         swarm_leader: "{{ item.split()[0] }}"
       when: "'Leader' in item"
       with_items: "{{ swarm_leader_output.stdout_lines }}"
 
-    - name: Define docker_gwbridge network configuration
+    - name: Distribute Swarm leader fact to all nodes
+      set_fact:
+        swarm_leader: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
+
+- name: Define network configuration and propagate it
+  hosts: orange
+  gather_facts: no
+  tasks:
+    - name: Set docker_gwbridge network configuration
       set_fact:
         docker_gwbridge_config: >
           docker network create
@@ -25,17 +36,8 @@
           --opt com.docker.network.bridge.name=docker_gwbridge
           docker_gwbridge
 
-- name: Propagate essential facts to all nodes
-  hosts: orange
-  gather_facts: no
-  tasks:
-    - name: Set Swarm leader and network config on all nodes
-      set_fact:
-        swarm_leader: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
-        docker_gwbridge_config: "{{ hostvars[ansible_play_hosts[0]]['docker_gwbridge_config'] }}"
-
 - name: Fetch and distribute Swarm join tokens
-  hosts: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
+  hosts: "{{ swarm_leader }}"
   become: yes
   gather_facts: no
   tasks:
@@ -47,13 +49,13 @@
         - worker
         - manager
 
-    - name: Store Swarm join tokens and leader IP
+    - name: Distribute Swarm join tokens to all nodes
       set_fact:
         worker_token: "{{ swarm_tokens.results[0].stdout }}"
         manager_token: "{{ swarm_tokens.results[1].stdout }}"
         swarm_leader_ip: "{{ ansible_host | default(inventory_hostname) }}"
 
-- name: Distribute Swarm join tokens to all nodes
+- name: Propagate Swarm join tokens
   hosts: orange
   gather_facts: no
   tasks:
