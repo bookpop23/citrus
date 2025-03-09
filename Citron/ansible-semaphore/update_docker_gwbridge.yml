@@ -9,22 +9,27 @@
       register: swarm_leader_output
       changed_when: false
 
-    - name: Extract and store Swarm leader
+    - name: Extract and store Swarm leader (on localhost)
       run_once: true
+      delegate_to: localhost
       set_fact:
         swarm_leader: "{{ item.split()[0] }}"
       when: "'Leader' in item"
       with_items: "{{ swarm_leader_output.stdout_lines }}"
 
-    - name: Distribute Swarm leader info to all nodes
+    - name: Propagate Swarm leader fact to all nodes
       set_fact:
         swarm_leader: "{{ hostvars['localhost']['swarm_leader'] }}"
       delegate_to: "{{ item }}"
       delegate_facts: true
       with_items: "{{ groups['orange'] }}"
 
+    - name: Debug - Confirm swarm leader fact on all nodes
+      debug:
+        msg: "Swarm leader is {{ swarm_leader }}"
+
 - name: Fetch Swarm join tokens
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
   become: yes
   gather_facts: no
   tasks:
@@ -46,105 +51,6 @@
         worker_token: "{{ hostvars[inventory_hostname]['worker_token'] }}"
         manager_token: "{{ hostvars[inventory_hostname]['manager_token'] }}"
         swarm_leader_ip: "{{ hostvars[inventory_hostname]['swarm_leader'] }}"
-      delegate_to: "{{ item }}"
-      delegate_facts: true
-      with_items: "{{ groups['orange'] }}"
-
-- name: Process non-leader nodes
-  hosts: orange
-  serial: 1
-  become: yes
-  gather_facts: yes
-  tasks:
-    - name: Skip the leader until last
-      meta: end_play
-      when: inventory_hostname == swarm_leader
-
-    - name: Demote non-leader managers
-      command: docker node demote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
-
-    - name: Leave the Swarm (abort if it fails)
-      command: docker swarm leave
-      register: swarm_leave_result
-      failed_when: swarm_leave_result.rc != 0
-
-    - name: Remove old docker_gwbridge network
-      command: docker network rm docker_gwbridge
-      ignore_errors: yes
-
-    - name: Create new docker_gwbridge network
-      command: >
-        docker network create
-        --driver bridge
-        --subnet=172.22.0.0/24
-        --ipv6
-        --subnet=2600:1702:6650:9b20:22::/80
-        --opt com.docker.network.bridge.name=docker_gwbridge
-        docker_gwbridge
-
-    - name: Rejoin the Swarm as a worker
-      command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      when: inventory_hostname != swarm_leader
-
-    - name: Promote back to manager if originally a manager
-      command: docker node promote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != swarm_leader"
-
-- name: Process the Swarm leader last
-  hosts: "{{ swarm_leader }}"
-  serial: 1
-  become: yes
-  tasks:
-    - name: Ensure another manager exists before demoting the leader
-      command: docker node promote {{ groups['orange'] | difference([inventory_hostname]) | first }}
-      run_once: true
-
-    - name: Demote the Swarm leader
-      command: docker node demote {{ inventory_hostname }}
-
-    - name: Leave the Swarm (abort if it fails)
-      command: docker swarm leave
-      register: swarm_leave_result
-      failed_when: swarm_leave_result.rc != 0
-
-    - name: Remove old docker_gwbridge network
-      command: docker network rm docker_gwbridge
-      ignore_errors: yes
-
-    - name: Create new docker_gwbridge network
-      command: >
-        docker network create
-        --driver bridge
-        --subnet=172.22.0.0/24
-        --ipv6
-        --subnet=2600:1702:6650:9b20:22::/80
-        --opt com.docker.network.bridge.name=docker_gwbridge
-        docker_gwbridge
-
-    - name: Rejoin leader as a manager
-      command: docker swarm join --token {{ manager_token }} {{ groups['orange'] | difference([inventory_hostname]) | first }}:2377
-
-    - name: Promote leader back to manager
-      command: docker node promote {{ inventory_hostname }}
-
-    - name: Fetch new Swarm join tokens
-      command: docker swarm join-token -q {{ item }}
-      register: new_swarm_tokens
-      changed_when: false
-      loop:
-        - worker
-        - manager
-
-    - name: Store new Swarm join tokens
-      set_fact:
-        worker_token: "{{ new_swarm_tokens.results[0].stdout }}"
-        manager_token: "{{ new_swarm_tokens.results[1].stdout }}"
-
-    - name: Distribute new Swarm tokens to all nodes
-      set_fact:
-        worker_token: "{{ hostvars[inventory_hostname]['worker_token'] }}"
-        manager_token: "{{ hostvars[inventory_hostname]['manager_token'] }}"
       delegate_to: "{{ item }}"
       delegate_facts: true
       with_items: "{{ groups['orange'] }}"
