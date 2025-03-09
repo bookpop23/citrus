@@ -19,7 +19,7 @@
         detected_leader: "{{ inventory_hostname }}"
       when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
 
-    - name: Debug - Show detected_leader for this node
+    - name: Debug - Show detected leader for this node
       debug:
         msg: "{{ inventory_hostname }} detected_leader: {{ detected_leader | default('') }}"
 
@@ -47,11 +47,11 @@
         msg: "No Swarm leader detected. Ensure at least one manager is online."
       when: swarm_leader | length == 0
 
-    - name: Distribute global swarm_leader fact to all nodes
+    - name: Distribute swarm_leader fact to all nodes
       set_fact:
         swarm_leader: "{{ swarm_leader }}"
 
-# PLAY 3: Define Network Configuration (Single Definition)
+# PLAY 3: Define Network Configuration (Defined in One Place)
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
@@ -67,7 +67,7 @@
           driver_options:
             com.docker.network.bridge.name: docker_gwbridge
 
-# PLAY 4: Fetch Join Tokens from the Leader (Run on the Leader Only)
+# PLAY 4: Fetch Join Tokens from the Leader (Run on Leader Only)
 - name: Fetch and distribute Swarm join tokens
   hosts: orange
   gather_facts: no
@@ -173,7 +173,7 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-# PLAY 7: Update the Swarm Leader (Processed Last)
+# PLAY 7: Update the Swarm Leader (Processed Last) with Node Removal Step
 - name: Update Swarm Leader (Processed Last)
   hosts: orange
   serial: 1
@@ -202,10 +202,11 @@
         msg: "Not enough managers in the swarm to safely update the leader."
       when: (manager_list.stdout_lines | length) < 2
 
-    - name: Demote Swarm leader (Remove old node record)
-      command: docker node rm {{ inventory_hostname }}
+    - name: Remove stale leader node record via backup manager
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
+      command: >
+        docker node rm $(docker node ls --filter "name={{ inventory_hostname }}" --format "{{ '{{.ID}}' }}" | head -n 1)
       ignore_errors: yes
-      when: inventory_hostname == swarm_leader
 
     - name: Leader leaves the swarm
       command: docker swarm leave
