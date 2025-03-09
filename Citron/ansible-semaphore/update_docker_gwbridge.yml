@@ -1,10 +1,10 @@
-# PLAY 1: Leader Detection - Each node checks if it is the leader (managers only return "true")
+# PLAY 1: Leader Detection - Each node checks if it is the leader (managers return "true")
 - name: Detect Swarm leader on nodes
   hosts: orange
   gather_facts: no
   become: yes
   tasks:
-    - name: Get self leader status (managers return "true"; workers error)
+    - name: Get self leader status (managers return "true"; workers will error)
       command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
       register: leader_status
       changed_when: false
@@ -33,7 +33,7 @@
       delegate_to: localhost
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
-      
+
     - name: Debug - Final Swarm leader (global)
       run_once: true
       delegate_to: localhost
@@ -51,7 +51,7 @@
       set_fact:
         swarm_leader: "{{ swarm_leader }}"
 
-# PLAY 3: Define Network Configuration (Single Definition)
+# PLAY 3: Define the Network Configuration (Single Definition)
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
@@ -74,16 +74,19 @@
   become: yes
   tasks:
     - name: Fetch worker join token (only on leader)
+      delegate_to: "{{ swarm_leader }}"
       command: docker swarm join-token -q worker
       register: worker_token_result
       when: inventory_hostname == swarm_leader
 
     - name: Fetch manager join token (only on leader)
+      delegate_to: "{{ swarm_leader }}"
       command: docker swarm join-token -q manager
       register: manager_token_result
       when: inventory_hostname == swarm_leader
 
     - name: Set join token facts on leader
+      delegate_to: "{{ swarm_leader }}"
       set_fact:
         worker_token: "{{ worker_token_result.stdout }}"
         manager_token: "{{ manager_token_result.stdout }}"
@@ -91,6 +94,7 @@
       when: inventory_hostname == swarm_leader
 
     - name: Debug - Show join tokens and leader IP (on leader)
+      delegate_to: "{{ swarm_leader }}"
       debug:
         msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
       when: inventory_hostname == swarm_leader
@@ -106,7 +110,7 @@
         manager_token: "{{ hostvars[swarm_leader]['manager_token'] }}"
         swarm_leader_ip: "{{ hostvars[swarm_leader]['swarm_leader_ip'] }}"
 
-    - name: Debug - Confirm join tokens on this node
+    - name: Debug - Confirm join token facts on this node
       debug:
         msg: "On {{ inventory_hostname }}: Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
 
@@ -117,7 +121,7 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip processing if this is the leader node
+    - name: Skip processing on the leader node
       meta: end_play
       when: inventory_hostname == swarm_leader
 
@@ -132,7 +136,8 @@
         msg: "{{ inventory_hostname }} role: {{ node_role.stdout | default('unknown') }}"
 
     - name: Demote node if it is a manager
-      command: docker node demote {{ inventory_hostname }}
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader, inventory_hostname]) | first }}"
+      command: docker node promote --remove {{ inventory_hostname }}
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
@@ -160,6 +165,7 @@
       when: inventory_hostname != swarm_leader
 
     - name: Promote node back to manager if originally a manager
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader, inventory_hostname]) | first }}"
       command: docker node promote {{ inventory_hostname }}
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
@@ -194,6 +200,7 @@
       when: (manager_list.stdout_lines | length) < 2
 
     - name: Demote Swarm leader
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
       command: docker node demote {{ inventory_hostname }}
       when: inventory_hostname == swarm_leader
 
@@ -224,7 +231,7 @@
       when: inventory_hostname == swarm_leader
 
     - name: Promote leader back to manager via backup manager
-      delegate_to: "{{ groups['orange'] | difference([inventory_hostname]) | first }}"
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
       command: docker node promote {{ inventory_hostname }}
       when: inventory_hostname == swarm_leader
 
