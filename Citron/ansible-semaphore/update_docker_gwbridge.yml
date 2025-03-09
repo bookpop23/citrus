@@ -1,5 +1,5 @@
-# Play 1: Leader Detection
-- name: Detect Swarm leader on manager nodes
+# Play 1: Leader Detection - Each node checks its leader status
+- name: Detect Swarm leader on nodes
   hosts: orange
   gather_facts: no
   become: yes
@@ -19,11 +19,11 @@
         detected_leader: "{{ inventory_hostname }}"
       when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
 
-    - name: Debug - Show detected_leader fact on this node
+    - name: Debug - Show detected_leader fact for this node
       debug:
         msg: "{{ inventory_hostname }} detected_leader: {{ detected_leader | default('') }}"
 
-# Play 2: Aggregate and Distribute Leader
+# Play 2: Aggregate and Distribute the Detected Leader
 - name: Aggregate and distribute Swarm leader
   hosts: orange
   gather_facts: no
@@ -34,7 +34,7 @@
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
 
-    - name: Debug - Confirm final Swarm leader
+    - name: Debug - Final Swarm leader (global)
       run_once: true
       delegate_to: localhost
       debug:
@@ -47,12 +47,12 @@
         msg: "No Swarm leader detected. Ensure at least one manager is online."
       when: swarm_leader | length == 0
 
-# Play 3: Define Network Configuration (Only once)
+# Play 3: Define the Network Configuration (Only Once)
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
   tasks:
-    - name: Set docker_gwbridge network configuration fact
+    - name: Set network configuration fact
       set_fact:
         docker_gwbridge_config:
           driver: bridge
@@ -60,24 +60,26 @@
             - subnet: "172.22.0.0/24"
             - subnet: "2600:1702:6650:9b20:22::/80"
           enable_ipv6: true
-          options:
+          driver_options:
             com.docker.network.bridge.name: docker_gwbridge
 
-# Play 4: Fetch Join Tokens from Leader (delegated to the leader)
-- name: Fetch and distribute Swarm join tokens
+# Play 4: Fetch Join Tokens from the Leader (Delegated)
+- name: Fetch and distribute Swarm join tokens from leader
   hosts: orange
   gather_facts: no
   become: yes
   tasks:
-    - name: Fetch worker join token (run on leader)
+    - name: Fetch worker join token on leader
       delegate_to: "{{ swarm_leader }}"
       command: docker swarm join-token -q worker
       register: worker_token_result
+      when: inventory_hostname == swarm_leader
 
-    - name: Fetch manager join token (run on leader)
+    - name: Fetch manager join token on leader
       delegate_to: "{{ swarm_leader }}"
       command: docker swarm join-token -q manager
       register: manager_token_result
+      when: inventory_hostname == swarm_leader
 
     - name: Set join token facts on leader
       delegate_to: "{{ swarm_leader }}"
@@ -85,13 +87,15 @@
         worker_token: "{{ worker_token_result.stdout }}"
         manager_token: "{{ manager_token_result.stdout }}"
         swarm_leader_ip: "{{ ansible_host }}"
-      
-    - name: Debug - Show join tokens and leader IP on leader
+      when: inventory_hostname == swarm_leader
+
+    - name: Debug - Show join tokens and leader IP (leader only)
       delegate_to: "{{ swarm_leader }}"
       debug:
         msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
+      when: inventory_hostname == swarm_leader
 
-# Play 5: Update Non-Leader Nodes (Serially)
+# Play 5: Update Non-Leader Nodes Serially
 - name: Update Non-Leader Nodes
   hosts: orange
   serial: 1
@@ -133,7 +137,7 @@
         name: docker_gwbridge
         driver: "{{ docker_gwbridge_config.driver }}"
         ipam_config: "{{ docker_gwbridge_config.ipam_config }}"
-        options: "{{ docker_gwbridge_config.options }}"
+        driver_options: "{{ docker_gwbridge_config.driver_options }}"
         enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin the swarm as worker
@@ -156,13 +160,15 @@
       debug:
         msg: "Updating leader: {{ inventory_hostname }}"
 
-    - name: Safety Check - Ensure at least 2 managers are online
+    - name: Safety Check - List current manager nodes
       command: docker node ls --filter "role=manager" --format "{{ '{{.Hostname}}' }}"
       register: manager_list
       changed_when: false
-    - name: Debug - List of manager nodes
+
+    - name: Debug - Manager nodes list
       debug:
         msg: "Manager nodes: {{ manager_list.stdout_lines | default([]) }}"
+
     - name: Fail if less than 2 managers exist
       fail:
         msg: "Not enough managers in the swarm to safely update the leader."
@@ -170,36 +176,44 @@
 
     - name: Demote Swarm leader
       command: docker node demote {{ inventory_hostname }}
+      when: inventory_hostname == swarm_leader
 
     - name: Leader leaves the swarm
       command: docker swarm leave
       register: leader_leave_result
       failed_when: leader_leave_result.rc != 0
+      when: inventory_hostname == swarm_leader
 
     - name: Remove old docker_gwbridge network on leader
       community.docker.docker_network:
         name: docker_gwbridge
         state: absent
       ignore_errors: yes
+      when: inventory_hostname == swarm_leader
 
     - name: Create new docker_gwbridge network on leader
       community.docker.docker_network:
         name: docker_gwbridge
         driver: "{{ docker_gwbridge_config.driver }}"
         ipam_config: "{{ docker_gwbridge_config.ipam_config }}"
-        options: "{{ docker_gwbridge_config.options }}"
+        driver_options: "{{ docker_gwbridge_config.driver_options }}"
         enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
+      when: inventory_hostname == swarm_leader
 
     - name: Leader rejoins the swarm as manager
       command: docker swarm join --token {{ manager_token }} {{ hostvars['localhost']['swarm_leader_ip'] }}:2377
+      when: inventory_hostname == swarm_leader
 
     - name: Promote leader back to manager
       command: docker node promote {{ inventory_hostname }}
+      when: inventory_hostname == swarm_leader
 
     - name: Refresh join tokens on leader (optional)
       command: docker swarm join-token -q worker
       register: new_worker_token
+      when: inventory_hostname == swarm_leader
 
     - name: Debug - New worker join token
       debug:
         msg: "New worker token: {{ new_worker_token.stdout }}"
+      when: inventory_hostname == swarm_leader
