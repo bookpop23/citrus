@@ -13,10 +13,6 @@
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show Docker version
-      debug:
-        var: docker_version.stdout
-
     - name: Fail if Docker is not installed
       fail:
         msg: "Docker is not installed on {{ inventory_hostname }}."
@@ -28,10 +24,6 @@
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show Docker service status
-      debug:
-        var: docker_status.stdout
-
     - name: Fail if Docker is not running
       fail:
         msg: "Docker is not running on {{ inventory_hostname }}. Ensure Docker is installed and running."
@@ -42,10 +34,6 @@
       register: swarm_status
       changed_when: false
       ignore_errors: true
-
-    - name: Debug - Show Swarm node state
-      debug:
-        var: swarm_status.stdout
 
     - name: Fail if this node is not part of a Swarm
       fail:
@@ -59,29 +47,27 @@
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show leader status
+    - name: Ensure leader_status is valid
       run_once: true
-      debug:
-        var: leader_status.stdout
+      fail:
+        msg: "Failed to detect Swarm leader. leader_status.stdout is empty or invalid."
+      when: leader_status.stdout is not defined or leader_status.stdout | trim == ""
 
     - name: Extract and store Swarm leader
       run_once: true
       set_fact:
         swarm_leader: "{{ inventory_hostname }}"
-      when: leader_status.stdout == "true"
+      when: leader_status.stdout | trim == "true"
 
-    - name: Debug - Confirm detected Swarm leader
+    - name: Ensure swarm_leader is defined before distributing
       run_once: true
-      debug:
-        msg: "Detected Swarm leader is {{ swarm_leader }}"
+      fail:
+        msg: "Swarm leader variable is still undefined. Something went wrong with leader detection."
+      when: swarm_leader is not defined
 
     - name: Distribute Swarm leader fact to all nodes
       set_fact:
         swarm_leader: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
-
-    - name: Debug - Confirm Swarm leader fact on all nodes
-      debug:
-        msg: "Swarm leader on {{ inventory_hostname }} is {{ swarm_leader }}"
 
 - name: Define network configuration
   hosts: orange
