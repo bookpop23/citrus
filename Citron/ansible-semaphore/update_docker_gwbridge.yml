@@ -4,19 +4,20 @@
   become: yes
   tasks:
     - name: Get Swarm leader status on each node
-      community.docker.docker_host_info:
+      community.docker.docker_swarm_info:
       register: swarm_info
       changed_when: false
       ignore_errors: true
 
     - name: Debug - Show leader status per node
       debug:
-        msg: "{{ inventory_hostname }} leader status: {{ swarm_info.swarm.NodeID if swarm_info.swarm.ControlAvailable else 'Not a manager' }}"
+        msg: "{{ inventory_hostname }} leader status: {{ swarm_info.swarm_facts.NodeID if swarm_info.swarm_facts.Manager else 'Not a manager' }}"
+      when: swarm_info.swarm_facts is defined
 
     - name: Mark this node as leader if detected
       set_fact:
         detected_leader: "{{ inventory_hostname }}"
-      when: swarm_info.swarm.ControlAvailable and swarm_info.swarm.NodeID in swarm_info.swarm.NodeList | selectattr('ManagerStatus', 'defined') | selectattr('ManagerStatus.Leader', 'equalto', true) | map(attribute='ID') | list
+      when: swarm_info.swarm_facts.Manager and swarm_info.swarm_facts.Leader
 
 - name: Identify and distribute Swarm leader
   hosts: orange
@@ -76,20 +77,21 @@
       when: inventory_hostname == hostvars['localhost']['swarm_leader']
 
     - name: Get node role
-      community.docker.docker_host_info:
+      community.docker.docker_swarm_info:
       register: node_role_info
       changed_when: false
       ignore_errors: true
 
     - name: Debug - Show node role
       debug:
-        msg: "{{ inventory_hostname }} role: {{ node_role_info.swarm.NodeRole | default('UNDEFINED') }}"
+        msg: "{{ inventory_hostname }} role: {{ node_role_info.swarm_facts.NodeRole | default('UNDEFINED') }}"
+      when: node_role_info.swarm_facts is defined
 
     - name: Demote if this node is a manager
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: worker
-      when: node_role_info.swarm.NodeRole == "manager" and inventory_hostname != hostvars['localhost']['swarm_leader']
+      when: node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != hostvars['localhost']['swarm_leader']
 
     - name: Leave Swarm (abort if it fails)
       community.docker.docker_swarm:
@@ -123,7 +125,7 @@
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: manager
-      when: node_role_info.swarm.NodeRole == "manager" and inventory_hostname != hostvars['localhost']['swarm_leader']
+      when: node_role_info.swarm_facts.NodeRole == "manager" and inventory_hostname != hostvars['localhost']['swarm_leader']
 
 - name: Update Swarm Leader (Processed Last)
   hosts: "{{ hostvars['localhost']['swarm_leader'] }}"
