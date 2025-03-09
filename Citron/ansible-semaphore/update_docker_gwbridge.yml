@@ -10,6 +10,17 @@
       changed_when: false
       when: "'manager' in group_names"
 
+    - name: Debug - Show Swarm leader output
+      run_once: true
+      debug:
+        var: swarm_leader_output.stdout_lines
+
+    - name: Ensure Swarm leader output is valid
+      run_once: true
+      fail:
+        msg: "Failed to determine Swarm leader. Check if the command ran on a valid manager."
+      when: swarm_leader_output.stdout_lines is not defined or swarm_leader_output.stdout_lines | length == 0
+
     - name: Extract and store Swarm leader
       run_once: true
       set_fact:
@@ -21,7 +32,7 @@
       set_fact:
         swarm_leader: "{{ hostvars[ansible_play_hosts[0]]['swarm_leader'] }}"
 
-- name: Define network configuration and propagate it
+- name: Define network configuration
   hosts: orange
   gather_facts: no
   tasks:
