@@ -1,5 +1,5 @@
 - name: Fetch Swarm Join Tokens from Leader
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ swarm_leader | default('bitter-orange') }}"
   gather_facts: no
   become: yes
   tasks:
@@ -27,9 +27,9 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip processing on the leader node
+    - name: Skip processing on leader node
       meta: end_play
-      when: inventory_hostname == swarm_leader
+      when: inventory_hostname == (swarm_leader | default('bitter-orange'))
 
     - name: Get node role
       command: docker node inspect self --format "{{ '{{.Spec.Role}}' }}"
@@ -40,9 +40,9 @@
     - name: Debug - Show node role
       debug:
         msg: "{{ inventory_hostname }} role: {{ node_role.stdout | default('unknown') }}"
-      
+
     - name: Demote node if it is a manager
-      command: docker node demote {{ inventory_hostname }}
+      command: docker node demote $(hostname)
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
@@ -61,15 +61,15 @@
 
     - name: Rejoin the swarm as worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      when: inventory_hostname != swarm_leader
+      when: inventory_hostname != (swarm_leader | default('bitter-orange'))
 
     - name: Promote node back to manager if originally a manager
-      command: docker node promote {{ inventory_hostname }}
+      command: docker node promote $(hostname)
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
 - name: Update Swarm Leader (Processed Last)
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ swarm_leader | default('bitter-orange') }}"
   serial: 1
   gather_facts: no
   become: yes
@@ -79,7 +79,7 @@
         msg: "Assuming backup manager exists."
 
     - name: Demote Swarm leader
-      command: docker node demote {{ inventory_hostname }}
+      command: docker node demote $(hostname)
 
     - name: Leader leaves the swarm
       command: docker swarm leave
@@ -98,7 +98,7 @@
       command: docker swarm join --token {{ manager_token }} {{ swarm_leader_ip }}:2377
 
     - name: Promote leader back to manager
-      command: docker node promote {{ inventory_hostname }}
+      command: docker node promote $(hostname)
 
     - name: Refresh join tokens on leader (optional)
       command: docker swarm join-token -q worker
