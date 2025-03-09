@@ -1,0 +1,62 @@
+- name: Update docker_gwbridge network on Raspberry Pi cluster
+  hosts: orange
+  serial: 1  # Ensure changes happen one node at a time
+  become: yes
+  vars:
+    new_docker_gwbridge_cmd: >
+      docker network create
+      --driver bridge
+      --subnet=172.22.0.0/24
+      --ipv6
+      --subnet=2600:1702:6650:9b20:22::/80
+      --opt com.docker.network.bridge.name=docker_gwbridge
+      docker_gwbridge
+    swarm_manager: "bitter-orange"  # Designate a reference manager
+
+  tasks:
+    - name: Fetch Swarm join tokens (Only on the manager)
+      command: docker swarm join-token -q {{ item }}
+      register: swarm_tokens
+      changed_when: false
+      when: inventory_hostname == swarm_manager
+      loop:
+        - worker
+        - manager
+
+    - name: Set Swarm token facts (Only on the manager)
+      set_fact:
+        worker_token: "{{ swarm_tokens.results[0].stdout }}"
+        manager_token: "{{ swarm_tokens.results[1].stdout }}"
+      when: inventory_hostname == swarm_manager
+
+    - name: Distribute tokens to all nodes
+      set_fact:
+        worker_token: "{{ hostvars[swarm_manager]['worker_token'] }}"
+        manager_token: "{{ hostvars[swarm_manager]['manager_token'] }}"
+
+    - name: Get Swarm node information
+      command: docker node inspect --format "{{ '{{.Spec.Role}}' }}" $(hostname)
+      register: node_role
+      changed_when: false
+
+    - name: Demote node if it's a manager (except swarm reference manager)
+      command: docker node demote $(hostname)
+      when: "'manager' in node_role.stdout and inventory_hostname != swarm_manager"
+
+    - name: Have node leave the Swarm
+      command: docker swarm leave --force
+
+    - name: Remove old docker_gwbridge network
+      command: docker network rm docker_gwbridge
+      ignore_errors: yes  # Ignore if the network doesn't exist
+
+    - name: Create new docker_gwbridge network
+      command: "{{ new_docker_gwbridge_cmd }}"
+
+    - name: Rejoin the Swarm as a worker
+      command: docker swarm join --token {{ worker_token }} {{ hostvars[swarm_manager]['ansible_host'] }}:2377
+      when: inventory_hostname != swarm_manager
+
+    - name: Promote back to manager if previously a manager (except sweet-orange)
+      command: docker node promote $(hostname)
+      when: "'manager' in node_role.stdout and inventory_hostname not in ['sweet-orange', swarm_manager]"
