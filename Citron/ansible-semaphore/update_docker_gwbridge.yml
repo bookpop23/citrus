@@ -27,7 +27,7 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip processing on leader node
+    - name: Skip processing on the leader node
       meta: end_play
       when: inventory_hostname == (swarm_leader | default('bitter-orange'))
 
@@ -42,7 +42,7 @@
         msg: "{{ inventory_hostname }} role: {{ node_role.stdout | default('unknown') }}"
 
     - name: Demote node if it is a manager
-      command: docker node demote $(hostname)
+      command: docker node demote {{ inventory_hostname }}
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
@@ -64,7 +64,7 @@
       when: inventory_hostname != (swarm_leader | default('bitter-orange'))
 
     - name: Promote node back to manager if originally a manager
-      command: docker node promote $(hostname)
+      command: docker node promote {{ inventory_hostname }}
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
@@ -76,10 +76,10 @@
   tasks:
     - name: Ensure a backup manager exists (assumed to be online)
       debug:
-        msg: "Assuming backup manager exists."
+        msg: "Assuming a backup manager exists."
 
     - name: Demote Swarm leader
-      command: docker node demote $(hostname)
+      command: docker node demote {{ inventory_hostname }}
 
     - name: Leader leaves the swarm
       command: docker swarm leave
@@ -98,7 +98,7 @@
       command: docker swarm join --token {{ manager_token }} {{ swarm_leader_ip }}:2377
 
     - name: Promote leader back to manager
-      command: docker node promote $(hostname)
+      command: docker node promote {{ inventory_hostname }}
 
     - name: Refresh join tokens on leader (optional)
       command: docker swarm join-token -q worker
