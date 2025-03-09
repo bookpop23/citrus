@@ -13,7 +13,8 @@
       --subnet=2600:1702:6650:9b20:22::/80
       --opt com.docker.network.bridge.name=docker_gwbridge
       docker_gwbridge
-    swarm_manager: "bitter-orange"  # The designated Swarm manager
+    swarm_manager: "bitter-orange"  # Initial Swarm manager
+    backup_manager: "blood-orange"  # Backup manager to prevent cluster failure
 
   tasks:
     - name: Fetch Swarm join tokens (Only on the manager)
@@ -42,9 +43,13 @@
       register: node_role
       changed_when: false
 
-    - name: Demote node if it's a manager (except swarm reference manager)
+    - name: Promote backup manager if bitter-orange is being processed
+      command: docker node promote {{ backup_manager }}
+      when: inventory_hostname == swarm_manager
+
+    - name: Demote node if it's a manager (except backup manager)
       command: docker node demote {{ inventory_hostname }}
-      when: "'manager' in node_role.stdout and inventory_hostname != swarm_manager"
+      when: "'manager' in node_role.stdout and inventory_hostname not in [swarm_manager, backup_manager]"
 
     - name: Have node leave the Swarm
       command: docker swarm leave --force
@@ -63,3 +68,7 @@
     - name: Promote back to manager if previously a manager (except sweet-orange)
       command: docker node promote {{ inventory_hostname }}
       when: "'manager' in node_role.stdout and inventory_hostname not in ['sweet-orange', swarm_manager]"
+
+    - name: If bitter-orange was modified, re-promote it to manager
+      command: docker node promote {{ swarm_manager }}
+      when: inventory_hostname == swarm_manager
