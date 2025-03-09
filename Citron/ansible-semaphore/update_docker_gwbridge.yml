@@ -1,26 +1,17 @@
----
-# Top-level variables – these must be defined at parse time.
-# Adjust swarm_leader here to change the designated leader.
-vars:
-  swarm_leader: "bitter-orange"
-
-###############################################################################
-# Step 1: Fetch Swarm Join Tokens from the Leader
-###############################################################################
 - name: Fetch Swarm Join Tokens from Leader
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ swarm_leader | default('bitter-orange') }}"
   gather_facts: no
   become: yes
   tasks:
-    - name: Fetch worker join token
+    - name: Fetch worker join token on leader
       command: docker swarm join-token -q worker
       register: worker_token_result
 
-    - name: Fetch manager join token
+    - name: Fetch manager join token on leader
       command: docker swarm join-token -q manager
       register: manager_token_result
 
-    - name: Set join token facts on leader
+    - name: Set join tokens facts on leader
       set_fact:
         worker_token: "{{ worker_token_result.stdout }}"
         manager_token: "{{ manager_token_result.stdout }}"
@@ -30,20 +21,17 @@ vars:
       debug:
         msg: "Worker token: {{ worker_token }}, Manager token: {{ manager_token }}, Leader IP: {{ swarm_leader_ip }}"
 
-###############################################################################
-# Step 2: Update Non-Leader Nodes (Serially, One at a Time)
-###############################################################################
 - name: Update Non-Leader Nodes
   hosts: orange
   serial: 1
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip processing on the leader node (handled later)
+    - name: Skip processing on leader node
       meta: end_play
-      when: inventory_hostname == swarm_leader
+      when: inventory_hostname == (swarm_leader | default('bitter-orange'))
 
-    - name: (Optional) Check node role
+    - name: Get node role
       command: docker node inspect self --format "{{ '{{.Spec.Role}}' }}"
       register: node_role
       changed_when: false
@@ -55,15 +43,15 @@ vars:
 
     - name: Demote node if it is a manager
       command: docker node demote $(hostname)
-      when: node_role.stdout | trim == "manager"
+      when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-    - name: Have node leave the swarm (abort if it fails)
+    - name: Have node leave the swarm
       command: docker swarm leave
       register: leave_result
       failed_when: leave_result.rc != 0
 
-    - name: Remove old docker_gwbridge network (ignore errors if network does not exist)
+    - name: Remove old docker_gwbridge network
       command: docker network rm docker_gwbridge
       ignore_errors: yes
 
@@ -73,30 +61,27 @@ vars:
 
     - name: Rejoin the swarm as worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      when: inventory_hostname != swarm_leader
+      when: inventory_hostname != (swarm_leader | default('bitter-orange'))
 
     - name: Promote node back to manager if it was originally a manager
       command: docker node promote $(hostname)
-      when: node_role.stdout | trim == "manager"
+      when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-###############################################################################
-# Step 3: Update the Swarm Leader (Processed Last)
-###############################################################################
 - name: Update Swarm Leader (Processed Last)
-  hosts: "{{ swarm_leader }}"
+  hosts: "{{ swarm_leader | default('bitter-orange') }}"
   serial: 1
   gather_facts: no
   become: yes
   tasks:
-    - name: (Optional) Ensure a backup manager exists
+    - name: Ensure another manager exists (assumed to be online)
       debug:
-        msg: "Assuming at least one backup manager is online."
+        msg: "Assuming backup manager exists."
 
-    - name: Demote the Swarm leader
+    - name: Demote Swarm leader
       command: docker node demote $(hostname)
 
-    - name: Have the leader leave the swarm (abort if it fails)
+    - name: Leader leaves the swarm
       command: docker swarm leave
       register: leader_leave_result
       failed_when: leader_leave_result.rc != 0
@@ -107,18 +92,4 @@ vars:
 
     - name: Create new docker_gwbridge network on leader
       command: >
-        docker network create --driver bridge --subnet=172.22.0.0/24 --ipv6 --subnet=2600:1702:6650:9b20:22::/80 --opt com.docker.network.bridge.name=docker_gwbridge docker_gwbridge
-
-    - name: Leader rejoins the swarm as manager
-      command: docker swarm join --token {{ manager_token }} {{ swarm_leader_ip }}:2377
-
-    - name: Promote leader back to manager
-      command: docker node promote $(hostname)
-
-    - name: Refresh join tokens (optional)
-      command: docker swarm join-token -q worker
-      register: new_worker_token
-
-    - name: Debug - New worker join token
-      debug:
-        msg: "New worker token: {{ new_worker_token.stdout }}"
+        docker network create --driver bridge --subnet=172.22.0.0/24 --ipv
