@@ -1,5 +1,67 @@
-- name: Fetch Swarm Join Tokens from Leader
-  hosts: "{{ swarm_leader | default('bitter-orange') }}"
+# PART 1: Automatically detect the current Swarm leader
+
+- name: Detect Swarm leader on manager nodes
+  hosts: orange
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Get leader status (managers only; workers will error)
+      command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
+      register: leader_status
+      changed_when: false
+      ignore_errors: true
+      # This task is intended to run only on manager nodes.
+    
+    - name: Debug - Show leader status for this node
+      debug:
+        msg: "{{ inventory_hostname }} leader status: {{ leader_status.stdout | default('') }}"
+    
+    - name: Mark node as leader if leader status is "true"
+      set_fact:
+        detected_leader: "{{ inventory_hostname }}"
+      when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
+
+- name: Identify and distribute the detected Swarm leader
+  hosts: orange
+  gather_facts: no
+  tasks:
+    - name: Aggregate first detected leader and set as global leader
+      run_once: true
+      set_fact:
+        swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
+    
+    - name: Debug - Final Swarm leader
+      run_once: true
+      debug:
+        msg: "Final Swarm leader is {{ swarm_leader }}"
+    
+    - name: Fail if no leader was detected
+      run_once: true
+      fail:
+        msg: "No Swarm leader was detected. Ensure at least one manager node is online."
+      when: swarm_leader | length == 0
+
+# PART 2: Define network configuration
+
+- name: Define docker_gwbridge network configuration
+  hosts: orange
+  gather_facts: no
+  tasks:
+    - name: Set network configuration fact
+      set_fact:
+        docker_gwbridge_config:
+          driver: bridge
+          ipam_options:
+            - subnet: "172.22.0.0/24"
+            - subnet: "2600:1702:6650:9b20:22::/80"
+          enable_ipv6: true
+          options:
+            com.docker.network.bridge.name: docker_gwbridge
+
+# PART 3: Fetch join tokens from the leader
+
+- name: Fetch and distribute Swarm join tokens (from leader)
+  hosts: "{{ swarm_leader }}"
   gather_facts: no
   become: yes
   tasks:
@@ -16,10 +78,12 @@
         worker_token: "{{ worker_token_result.stdout }}"
         manager_token: "{{ manager_token_result.stdout }}"
         swarm_leader_ip: "{{ ansible_host }}"
-      
+    
     - name: Debug - Show join tokens and leader IP
       debug:
-        msg: "Worker token: {{ worker_token }}, Manager token: {{ manager_token }}, Leader IP: {{ swarm_leader_ip }}"
+        msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
+
+# PART 4: Update Non-Leader Nodes (serially)
 
 - name: Update Non-Leader Nodes
   hosts: orange
@@ -29,7 +93,7 @@
   tasks:
     - name: Skip processing on the leader node
       meta: end_play
-      when: inventory_hostname == (swarm_leader | default('bitter-orange'))
+      when: inventory_hostname == swarm_leader
 
     - name: Get node role
       command: docker node inspect self --format "{{ '{{.Spec.Role}}' }}"
@@ -37,10 +101,10 @@
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show node role
+    - name: Debug - Show node role for non-leader
       debug:
         msg: "{{ inventory_hostname }} role: {{ node_role.stdout | default('unknown') }}"
-
+    
     - name: Demote node if it is a manager
       command: docker node demote {{ inventory_hostname }}
       when: (node_role.stdout | trim) == "manager"
@@ -51,34 +115,36 @@
       register: leave_result
       failed_when: leave_result.rc != 0
 
-    - name: Remove old docker_gwbridge network
+    - name: Remove old docker_gwbridge network on node
       command: docker network rm docker_gwbridge
       ignore_errors: yes
 
-    - name: Create new docker_gwbridge network
+    - name: Create new docker_gwbridge network on node
       command: >
         docker network create --driver bridge --subnet=172.22.0.0/24 --ipv6 --subnet=2600:1702:6650:9b20:22::/80 --opt com.docker.network.bridge.name=docker_gwbridge docker_gwbridge
 
     - name: Rejoin the swarm as worker
       command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      when: inventory_hostname != (swarm_leader | default('bitter-orange'))
+      when: inventory_hostname != swarm_leader
 
-    - name: Promote node back to manager if originally a manager
+    - name: Promote node back to manager if it was originally a manager
       command: docker node promote {{ inventory_hostname }}
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
+# PART 5: Update the Swarm Leader (last)
+
 - name: Update Swarm Leader (Processed Last)
-  hosts: "{{ swarm_leader | default('bitter-orange') }}"
+  hosts: "{{ swarm_leader }}"
   serial: 1
   gather_facts: no
   become: yes
   tasks:
-    - name: Ensure a backup manager exists (assumed to be online)
+    - name: (Optional) Ensure backup manager exists
       debug:
-        msg: "Assuming a backup manager exists."
+        msg: "Assuming backup manager exists."
 
-    - name: Demote Swarm leader
+    - name: Demote the Swarm leader
       command: docker node demote {{ inventory_hostname }}
 
     - name: Leader leaves the swarm
