@@ -44,7 +44,7 @@
       delegate_to: localhost
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
-        swarm_leader_id: "{{ hostvars[ (groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first) ]['detected_leader_id'] | default('') }}"
+        swarm_leader_id: "{{ hostvars[(groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first)]['detected_leader_id'] | default('') }}"
       
     - name: Debug - Final Swarm leader (global)
       run_once: true
@@ -113,7 +113,7 @@
         msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
       when: inventory_hostname == swarm_leader
 
-# PLAY 5: Distribute Join Token Facts to All Nodes
+# PLAY 5: Distribute Join Token Facts
 - name: Distribute join token facts globally
   hosts: orange
   gather_facts: no
@@ -157,18 +157,6 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-    - name: Verify node role is "worker" before leaving swarm
-      delegate_to: "{{ swarm_leader }}"
-      command: docker node inspect {{ hostvars[inventory_hostname]['node_id'] }} --format "{{ '{{.Spec.Role}}' }}"
-      register: role_check
-      retries: 5
-      delay: 5
-      until: (role_check.stdout | trim) == "worker"
-      
-    - name: Debug - Confirm node role is worker
-      debug:
-        msg: "{{ inventory_hostname }} confirmed role: {{ role_check.stdout }}"
-
     - name: Have node leave the swarm asynchronously
       command: timeout 60 docker swarm leave
       async: 60
@@ -182,10 +170,14 @@
       until: leave_result.finished
       retries: 6
       delay: 10
+      ignore_errors: yes
 
     - name: Debug - Show result of swarm leave
       debug:
         var: leave_result
+
+    - name: Verify connectivity via ping after leaving swarm
+      ansible.builtin.ping:
 
     - name: Remove old docker_gwbridge network on node
       community.docker.docker_network:
@@ -213,7 +205,7 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-# PLAY 7: Update the Leader Node (Processed Last) Using Node IDs
+# PLAY 7: Update the Leader Node (Processed Last)
 - name: Update Swarm Leader (Processed Last)
   hosts: orange
   serial: 1
