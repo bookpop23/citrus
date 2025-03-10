@@ -64,7 +64,7 @@
         swarm_leader: "{{ swarm_leader }}"
         swarm_leader_id: "{{ swarm_leader_id }}"
 
-# PLAY 3: Define Network Configuration
+# PLAY 3: Define the Network Configuration
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
@@ -113,7 +113,7 @@
         msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
       when: inventory_hostname == swarm_leader
 
-# PLAY 5: Distribute Join Token Facts
+# PLAY 5: Distribute Join Token Facts to All Nodes
 - name: Distribute join token facts globally
   hosts: orange
   gather_facts: no
@@ -160,14 +160,14 @@
     - name: Have node leave the swarm asynchronously
       command: timeout 60 docker swarm leave
       async: 60
-      poll: 0
+      poll: 1
       register: leave_async
 
     - name: Wait for the swarm leave to complete
       async_status:
         jid: "{{ leave_async.ansible_job_id }}"
       register: leave_result
-      until: leave_result.finished or leave_result.msg is search("could not find job")
+      until: leave_result.finished or (leave_result.msg is search("could not find job"))
       retries: 6
       delay: 10
       ignore_errors: yes
@@ -176,7 +176,7 @@
       debug:
         var: leave_result
 
-    - name: Verify node connectivity (ping test) after leaving swarm
+    - name: Verify node connectivity via ping after leaving swarm
       ansible.builtin.ping:
       ignore_errors: yes
 
