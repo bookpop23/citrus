@@ -66,6 +66,7 @@
           enable_ipv6: true
           driver_options:
             com.docker.network.bridge.name: docker_gwbridge
+            com.docker.network.bridge.gateway_mode_ipv6: routed
 
 # PLAY 4: Fetch Join Tokens from the Leader (Run on Leader Only)
 - name: Fetch and set join tokens on leader
