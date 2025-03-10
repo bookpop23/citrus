@@ -157,10 +157,22 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
+    - name: Verify node role is "worker" before leaving swarm
+      delegate_to: "{{ swarm_leader }}"
+      command: docker node inspect {{ hostvars[inventory_hostname]['node_id'] }} --format "{{ '{{.Spec.Role}}' }}"
+      register: role_check
+      retries: 5
+      delay: 5
+      until: (role_check.stdout | trim) == "worker"
+      
+    - name: Debug - Confirm node role is worker
+      debug:
+        msg: "{{ inventory_hostname }} confirmed role: {{ role_check.stdout }}"
+
     - name: Have node leave the swarm asynchronously
       command: timeout 60 docker swarm leave
       async: 60
-      poll: 0
+      poll: 1
       register: leave_async
 
     - name: Wait for the swarm leave to complete
