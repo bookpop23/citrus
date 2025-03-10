@@ -2,13 +2,12 @@
 # PLAY 1: Collect Manager Node IDs from a Manager
 ##############################################
 - name: Collect swarm manager node IDs
-  hosts: "{{ groups['orange'][0] }}"  # Designate first node as query host (assumed manager)
+  hosts: "{{ groups['orange'][0] }}"  # use the first node in the group (assumed manager)
   gather_facts: no
   become: yes
   tasks:
-    - name: Get manager nodes info using Docker's template
-      # Using a Go template that prints ID, Hostname, and if available, ManagerStatus.Leader (no spaces)
-      command: docker node ls --filter "role=manager" --format '{{.ID}} {{.Hostname}} {{if .ManagerStatus}}{{.ManagerStatus.Leader}}{{end}}'
+    - name: Get list of manager node IDs and hostnames
+      command: docker node ls --filter "role=manager" --format "{{ '{{.ID}} {{.Hostname}} {{if .ManagerStatus}}{{.ManagerStatus.Leader}}{{end}}' }}"
       register: manager_nodes
       changed_when: false
 
@@ -79,7 +78,7 @@
 ##############################################
 # PLAY 4: Fetch Join Tokens from the Global Leader
 ##############################################
-- name: Fetch join tokens on global leader
+- name: Fetch and set join tokens on the global leader
   hosts: "{{ swarm_leader }}"
   gather_facts: no
   become: yes
@@ -92,7 +91,7 @@
       command: docker swarm join-token -q manager
       register: manager_token_result
 
-    - name: Set join token facts on leader
+    - name: Set join token facts on the leader
       set_fact:
         worker_token: "{{ worker_token_result.stdout }}"
         manager_token: "{{ manager_token_result.stdout }}"
@@ -105,11 +104,11 @@
 ##############################################
 # PLAY 5: Distribute Join Token Facts to All Nodes
 ##############################################
-- name: Distribute join token facts to all nodes
+- name: Distribute join token facts globally
   hosts: orange
   gather_facts: no
   tasks:
-    - name: Set join token facts on all nodes from leader info
+    - name: Set join token facts on all nodes from leader
       set_fact:
         worker_token: "{{ hostvars[swarm_leader]['worker_token'] }}"
         manager_token: "{{ hostvars[swarm_leader]['manager_token'] }}"
@@ -128,7 +127,7 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip if this node is the global leader
+    - name: Skip processing if this node is the global leader
       meta: end_play
       when: inventory_hostname == swarm_leader
 
@@ -211,7 +210,7 @@
       ignore_errors: yes
 
 ##############################################
-# PLAY 7: Update the Leader Node (Processed Last)
+# PLAY 7: Update the Global Leader Node (Processed Last)
 ##############################################
 - name: Update global leader node (processed last)
   hosts: orange
