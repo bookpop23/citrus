@@ -2,12 +2,12 @@
 # PLAY 1: Collect Manager Node IDs from a Manager
 ##############################################
 - name: Collect swarm manager node IDs
-  hosts: "{{ groups['orange'][0] }}"  # use the first node in the group (assumed to be a manager)
+  hosts: "{{ groups['orange'][0] }}"  # use the first node in the group (assumed manager)
   gather_facts: no
   become: yes
   tasks:
     - name: Get list of manager node IDs and hostnames
-      command: docker node ls --filter "role=manager" --format "{{ '{{.ID}}' }} {{ '{{.Hostname}}' }} {{ if .ManagerStatus }}{{ '{{.ManagerStatus.Leader}}' }}{{ end }}"
+      command: docker node ls --filter "role=manager" --format '{{.ID}} {{.Hostname}} {{if .ManagerStatus}}{{.ManagerStatus.Leader}}{{end}}'
       register: manager_nodes
       changed_when: false
 
@@ -30,7 +30,7 @@
   tasks:
     - name: Identify leader node (filter manager nodes with 'true')
       set_fact:
-        global_leader_line: "{{ global_manager_nodes | select('search', ' true') | list | first | default('') }}"
+        global_leader_line: "{{ global_manager_nodes | select('search', 'true') | list | first | default('') }}"
       delegate_to: localhost
 
     - name: Fail if no leader found
