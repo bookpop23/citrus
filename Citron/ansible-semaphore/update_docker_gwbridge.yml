@@ -1,36 +1,29 @@
-# PLAY 1: Leader Detection & Node ID Collection
-- name: Detect Swarm leader and collect node ID on each node
+# PLAY 1: Leader Detection - Each node checks its own leader status.
+- name: Detect Swarm leader on nodes
   hosts: orange
   gather_facts: no
   become: yes
   tasks:
-    - name: Get self leader status (managers return "true")
+    - name: Get self leader status (managers return "true"; workers error)
       command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
       register: leader_status
       changed_when: false
       ignore_errors: true
 
-    - name: Get self node ID
-      command: docker node inspect self --format "{{ '{{.ID}}' }}"
-      register: node_id_result
-      changed_when: false
-      ignore_errors: true
-
-    - name: Debug - Show leader status and node ID
+    - name: Debug - Show leader status for this node
       debug:
-        msg: "{{ inventory_hostname }}: leader status={{ leader_status.stdout | default('') }}, node ID={{ node_id_result.stdout | default('') }}"
+        msg: "{{ inventory_hostname }} leader status: {{ leader_status.stdout | default('') }}"
 
-    - name: Set detected leader facts if status is "true"
+    - name: Mark node as leader if status is "true"
       set_fact:
         detected_leader: "{{ inventory_hostname }}"
-        detected_leader_id: "{{ node_id_result.stdout }}"
       when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
 
-    - name: Debug - Show detected_leader facts on this node
+    - name: Debug - Show detected leader for this node
       debug:
-        msg: "{{ inventory_hostname }} detected_leader: {{ detected_leader | default('') }}, detected_leader_id: {{ detected_leader_id | default('') }}"
+        msg: "{{ inventory_hostname }} detected_leader: {{ detected_leader | default('') }}"
 
-# PLAY 2: Aggregate and Distribute the Detected Leader Globally
+# PLAY 2: Aggregate and Distribute the Detected Leader
 - name: Aggregate and distribute Swarm leader
   hosts: orange
   gather_facts: no
@@ -40,13 +33,12 @@
       delegate_to: localhost
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
-        swarm_leader_id: "{{ hostvars[ (groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first) ]['detected_leader_id'] | default('') }}"
       
     - name: Debug - Final Swarm leader (global)
       run_once: true
       delegate_to: localhost
       debug:
-        msg: "Final Swarm leader is {{ swarm_leader }} (ID: {{ swarm_leader_id }})"
+        msg: "Final Swarm leader is {{ swarm_leader }}"
 
     - name: Fail if no Swarm leader was detected
       run_once: true
@@ -55,12 +47,11 @@
         msg: "No Swarm leader detected. Ensure at least one manager is online."
       when: swarm_leader | length == 0
 
-    - name: Distribute global swarm_leader facts to all nodes
+    - name: Distribute global swarm_leader fact to all nodes
       set_fact:
         swarm_leader: "{{ swarm_leader }}"
-        swarm_leader_id: "{{ swarm_leader_id }}"
 
-# PLAY 3: Define the Network Configuration (Single Definition)
+# PLAY 3: Define Network Configuration (Single Definition)
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
@@ -77,7 +68,7 @@
             com.docker.network.bridge.name: docker_gwbridge
             com.docker.network.bridge.gateway_mode_ipv6: routed
 
-# PLAY 4: Fetch Join Tokens from the Leader (Run Only on Leader)
+# PLAY 4: Fetch Join Tokens from the Leader (Run on Leader Only)
 - name: Fetch and set join tokens on leader
   hosts: orange
   gather_facts: no
@@ -153,10 +144,23 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-    - name: Have node leave the swarm
-      command: docker swarm leave
+    - name: Have node leave the swarm asynchronously
+      command: timeout 60 docker swarm leave
+      async: 60
+      poll: 0
+      register: leave_async
+
+    - name: Wait for the swarm leave to complete
+      async_status:
+        jid: "{{ leave_async.ansible_job_id }}"
       register: leave_result
-      failed_when: leave_result.rc != 0
+      until: leave_result.finished
+      retries: 6
+      delay: 10
+
+    - name: Debug - Show result of swarm leave
+      debug:
+        var: leave_result
 
     - name: Remove old docker_gwbridge network on node
       community.docker.docker_network:
