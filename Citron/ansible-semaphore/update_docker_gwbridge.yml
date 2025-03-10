@@ -1,4 +1,6 @@
+#####################################
 # PLAY 1: Leader Detection & Node ID Collection
+#####################################
 - name: Detect Swarm leader and collect node IDs
   hosts: orange
   gather_facts: no
@@ -16,25 +18,27 @@
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show leader status and node ID for this node
+    - name: Debug - Show leader status and node ID
       debug:
-        msg: "{{ inventory_hostname }}: leader status={{ leader_status.stdout | default('') }}, node ID={{ node_id_result.stdout | default('') }}"
+        msg: "{{ inventory_hostname }}: Leader status={{ leader_status.stdout | default('') }}, Node ID={{ node_id_result.stdout | default('') }}"
 
     - name: Set node_id fact on this node
       set_fact:
         node_id: "{{ node_id_result.stdout }}"
 
-    - name: Mark node as leader if status is "true"
+    - name: Mark as detected leader if leader status is "true"
       set_fact:
         detected_leader: "{{ inventory_hostname }}"
         detected_leader_id: "{{ node_id }}"
       when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
 
-    - name: Debug - Show detected leader info for this node
+    - name: Debug - Detected leader info (if any)
       debug:
         msg: "{{ inventory_hostname }} detected_leader: {{ detected_leader | default('') }}, detected_leader_id: {{ detected_leader_id | default('') }}"
 
+#####################################
 # PLAY 2: Aggregate & Distribute Leader Info
+#####################################
 - name: Aggregate and distribute global Swarm leader info
   hosts: orange
   gather_facts: no
@@ -56,7 +60,7 @@
       run_once: true
       delegate_to: localhost
       fail:
-        msg: "No Swarm leader detected. Ensure at least one manager is online."
+        msg: "No Swarm leader detected. At least one manager must be online."
       when: swarm_leader | length == 0
 
     - name: Distribute global leader info to all nodes
@@ -64,7 +68,9 @@
         swarm_leader: "{{ swarm_leader }}"
         swarm_leader_id: "{{ swarm_leader_id }}"
 
+#####################################
 # PLAY 3: Define Network Configuration
+#####################################
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
@@ -82,7 +88,9 @@
             com.docker.network.bridge.gateway_mode_ipv6: routed
             com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
 
+#####################################
 # PLAY 4: Fetch Join Tokens from the Leader
+#####################################
 - name: Fetch and set join tokens on the leader
   hosts: orange
   gather_facts: no
@@ -114,7 +122,9 @@
         msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
       when: inventory_hostname == swarm_leader
 
-# PLAY 5: Distribute Join Token Facts to All Nodes
+#####################################
+# PLAY 5: Distribute Join Token Facts
+#####################################
 - name: Distribute join token facts globally
   hosts: orange
   gather_facts: no
@@ -129,7 +139,9 @@
       debug:
         msg: "On {{ inventory_hostname }}: Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
 
+#####################################
 # PLAY 6: Update Non-Leader Nodes (Serially)
+#####################################
 - name: Update Non-Leader Nodes
   hosts: orange
   serial: 1
@@ -217,7 +229,9 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
+#####################################
 # PLAY 7: Update the Leader Node (Processed Last)
+#####################################
 - name: Update Swarm Leader (Processed Last)
   hosts: orange
   serial: 1
