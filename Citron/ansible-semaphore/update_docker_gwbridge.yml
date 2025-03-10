@@ -1,60 +1,71 @@
 ##############################################
-# PLAY 1: Leader Detection & Node ID Collection
+# PLAY 1: Get Global Node Mapping from a Manager
 ##############################################
-- name: Detect Swarm leader and collect node IDs
+- name: Get global Docker node mapping (hostname -> node ID)
+  hosts: orange
+  gather_facts: no
+  become: yes
+  # Run this play only on the global leader (or another designated manager)
+  when: "'true' in (lookup('pipe', 'docker node inspect self --format \"{{.ManagerStatus.Leader}}\"') | lower)"
+  tasks:
+    - name: Retrieve full node list from Docker
+      command: docker node ls --format "{{ '{{.ID}} {{.Hostname}}' }}"
+      register: node_list_result
+
+    - name: Build node mapping dictionary (hostname -> node ID)
+      set_fact:
+        node_mapping: "{{ dict(node_list_result.stdout_lines | map('split') | list) }}"
+
+    - name: Debug - Show global node mapping
+      debug:
+        var: node_mapping
+
+##############################################
+# PLAY 2: Leader Detection on Manager Nodes
+##############################################
+- name: Detect leader status on manager nodes only
   hosts: orange
   gather_facts: no
   become: yes
   tasks:
-    - name: Get self leader status (managers return "true"; workers error)
+    - name: Get self leader status (only managers can run this)
       command: docker node inspect self --format "{{ '{{.ManagerStatus.Leader}}' }}"
       register: leader_status
       changed_when: false
       ignore_errors: true
 
-    - name: Get self node ID
-      command: docker node inspect self --format "{{ '{{.ID}}' }}"
-      register: node_id_result
-      changed_when: false
-      ignore_errors: true
-
-    - name: Debug - Show leader status and node ID for this node
+    - name: Debug - Show leader status for this node
       debug:
-        msg: "{{ inventory_hostname }}: Leader status={{ leader_status.stdout | default('') }}, Node ID={{ node_id_result.stdout | default('') }}"
-
-    - name: Set node_id fact on this node
-      set_fact:
-        node_id: "{{ node_id_result.stdout }}"
+        msg: "{{ inventory_hostname }}: Leader status={{ leader_status.stdout | default('') }}"
 
     - name: Mark as detected leader if leader status is "true"
       set_fact:
         detected_leader: "{{ inventory_hostname }}"
-        detected_leader_id: "{{ node_id }}"
       when: leader_status.stdout is defined and (leader_status.stdout | trim) == "true"
 
-    - name: Debug - Show detected leader info for this node
-      debug:
-        msg: "{{ inventory_hostname }} detected_leader: {{ detected_leader | default('') }}, detected_leader_id: {{ detected_leader_id | default('') }}"
-
 ##############################################
-# PLAY 2: Aggregate & Distribute Leader Info
+# PLAY 3: Distribute Global Node Mapping & Leader Info
 ##############################################
-- name: Aggregate and distribute global Swarm leader info
+- name: Distribute global node mapping and leader info
   hosts: orange
   gather_facts: no
   tasks:
+    - name: Set node_mapping fact (from global manager)
+      set_fact:
+        node_mapping: "{{ hostvars[groups['orange'][0]].node_mapping | default({}) }}"
+      # Assumes at least one manager in the group has node_mapping set
+
     - name: Aggregate first detected leader and set global facts
       run_once: true
       delegate_to: localhost
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
-        swarm_leader_id: "{{ hostvars[(groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first)]['detected_leader_id'] | default('') }}"
       
     - name: Debug - Global Swarm leader info
       run_once: true
       delegate_to: localhost
       debug:
-        msg: "Global leader is {{ swarm_leader }} (ID: {{ swarm_leader_id }})"
+        msg: "Global leader is {{ swarm_leader }}"
 
     - name: Fail if no Swarm leader detected
       run_once: true
@@ -63,13 +74,8 @@
         msg: "No Swarm leader detected. At least one manager must be online."
       when: swarm_leader | length == 0
 
-    - name: Distribute global leader info to all nodes
-      set_fact:
-        swarm_leader: "{{ swarm_leader }}"
-        swarm_leader_id: "{{ swarm_leader_id }}"
-
 ##############################################
-# PLAY 3: Define Network Configuration
+# PLAY 4: Define Network Configuration
 ##############################################
 - name: Define docker_gwbridge network configuration
   hosts: orange
@@ -89,7 +95,7 @@
             com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
 
 ##############################################
-# PLAY 4: Fetch Join Tokens from the Leader
+# PLAY 5: Fetch Join Tokens from the Leader
 ##############################################
 - name: Fetch and set join tokens on the leader
   hosts: orange
@@ -123,7 +129,7 @@
       when: inventory_hostname == swarm_leader
 
 ##############################################
-# PLAY 5: Distribute Join Token Facts to All Nodes
+# PLAY 6: Distribute Join Token Facts to All Nodes
 ##############################################
 - name: Distribute join token facts globally
   hosts: orange
@@ -140,7 +146,7 @@
         msg: "On {{ inventory_hostname }}: Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
 
 ##############################################
-# PLAY 6: Update Non-Leader Nodes (Serially)
+# PLAY 7: Update Non-Leader Nodes (Serially)
 ##############################################
 - name: Update Non-Leader Nodes
   hosts: orange
@@ -158,7 +164,7 @@
       changed_when: false
       ignore_errors: true
 
-    - name: Debug - Show node role for this node
+    - name: Debug - Node role on this node
       debug:
         msg: "{{ inventory_hostname }} role: {{ node_role.stdout | default('unknown') }}"
 
@@ -189,7 +195,8 @@
       debug:
         var: leave_result
 
-    - name: Verify node is no longer in swarm (by node ID)
+    - name: Verify node is no longer in swarm (using global leader)
+      delegate_to: "{{ swarm_leader }}"
       command: docker node ls --filter "id={{ hostvars[inventory_hostname]['node_id'] }}" --format "{{ '{{.ID}}' }}"
       register: post_leave_check
       changed_when: false
@@ -230,7 +237,7 @@
       ignore_errors: yes
 
 ##############################################
-# PLAY 7: Update the Leader Node (Processed Last)
+# PLAY 8: Update the Leader Node (Processed Last)
 ##############################################
 - name: Update Swarm Leader (Processed Last)
   hosts: orange
@@ -246,7 +253,8 @@
       debug:
         msg: "Updating leader: {{ inventory_hostname }} (ID: {{ hostvars[inventory_hostname]['node_id'] | default('') }})"
 
-    - name: Safety Check - List current manager node IDs
+    - name: Safety Check - List current manager node IDs (via backup manager)
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
       command: docker node ls --filter "role=manager" --format "{{ '{{.ID}}' }}"
       register: manager_list
       changed_when: false
@@ -270,7 +278,8 @@
       pause:
         seconds: 10
 
-    - name: Verify stale leader record is removed
+    - name: Verify stale leader record is removed (via backup manager)
+      delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
       command: docker node ls --filter "id={{ swarm_leader_id }}" --format "{{ '{{.ID}}' }}"
       register: node_check
       changed_when: false
