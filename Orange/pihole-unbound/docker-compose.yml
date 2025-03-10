@@ -14,15 +14,27 @@ services:
       - swarm-network  # Allow Swarm services to use Pi-hole as DNS
     ports:
       - target: 53
-        published: 53
+        published: 0.0.0.0:53
         protocol: tcp
         mode: ingress
       - target: 53
-        published: 53
+        published: 0.0.0.0:53
         protocol: udp
         mode: ingress
       - target: 80
-        published: 8091
+        published: 0.0.0.0:8091
+        protocol: tcp
+        mode: ingress
+      - target: 53
+        published: "::53"
+        protocol: tcp
+        mode: ingress
+      - target: 53
+        published: "::53"
+        protocol: udp
+        mode: ingress
+      - target: 80
+        published: "::8091"
         protocol: tcp
         mode: ingress
     environment:
