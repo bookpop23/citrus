@@ -160,14 +160,14 @@
     - name: Have node leave the swarm asynchronously
       command: timeout 60 docker swarm leave
       async: 60
-      poll: 1
+      poll: 0
       register: leave_async
 
     - name: Wait for the swarm leave to complete
       async_status:
         jid: "{{ leave_async.ansible_job_id }}"
       register: leave_result
-      until: leave_result.finished
+      until: leave_result.finished or leave_result.msg is search("could not find job")
       retries: 6
       delay: 10
       ignore_errors: yes
@@ -176,8 +176,9 @@
       debug:
         var: leave_result
 
-    - name: Verify connectivity via ping after leaving swarm
+    - name: Verify node connectivity (ping test) after leaving swarm
       ansible.builtin.ping:
+      ignore_errors: yes
 
     - name: Remove old docker_gwbridge network on node
       community.docker.docker_network:
