@@ -2,12 +2,12 @@
 # PLAY 1: Collect Manager Node IDs from a Manager
 ##############################################
 - name: Collect swarm manager node IDs
-  hosts: "{{ groups['orange'][0] }}"  # use the first node in the group as the query host (assumed manager)
+  hosts: "{{ groups['orange'][0] }}"  # use the first node in the group (assumed to be a manager)
   gather_facts: no
   become: yes
   tasks:
     - name: Get list of manager node IDs and hostnames
-      command: docker node ls --filter "role=manager" --format "{{ '{{.ID}} {{.Hostname}} {{.ManagerStatus.Leader}}' }}"
+      command: docker node ls --filter "role=manager" --format "{{ '{{.ID}}' }} {{ '{{.Hostname}}' }} {{ if .ManagerStatus }}{{ '{{.ManagerStatus.Leader}}' }}{{ end }}"
       register: manager_nodes
       changed_when: false
 
@@ -28,7 +28,7 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Identify leader node (filter manager nodes with 'true' in Leader field)
+    - name: Identify leader node (filter manager nodes with 'true')
       set_fact:
         global_leader_line: "{{ global_manager_nodes | select('search', ' true') | list | first | default('') }}"
       delegate_to: localhost
@@ -47,6 +47,7 @@
     - name: Debug - Global leader info
       debug:
         msg: "Global leader is {{ swarm_leader }} (ID: {{ swarm_leader_id }})"
+      delegate_to: localhost
 
     - name: Distribute global leader info to all nodes
       set_fact:
@@ -95,15 +96,15 @@
         worker_token: "{{ worker_token_result.stdout }}"
         manager_token: "{{ manager_token_result.stdout }}"
         swarm_leader_ip: "{{ ansible_host }}"
-    
+
     - name: Debug - Leader join tokens and IP
       debug:
         msg: "Leader IP: {{ swarm_leader_ip }}, Worker token: {{ worker_token }}, Manager token: {{ manager_token }}"
 
 ##############################################
-# PLAY 5: Distribute Join Token Facts
+# PLAY 5: Distribute Join Token Facts to All Nodes
 ##############################################
-- name: Distribute join token facts to all nodes
+- name: Distribute join token facts globally
   hosts: orange
   gather_facts: no
   tasks:
@@ -126,7 +127,7 @@
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip processing if this node is the global leader
+    - name: Skip if this node is the global leader
       meta: end_play
       when: inventory_hostname == swarm_leader
 
@@ -167,14 +168,14 @@
       debug:
         var: leave_result
 
-    - name: Verify node is no longer in the swarm (via backup manager)
+    - name: Verify node is no longer in swarm (via backup manager)
       delegate_to: "{{ swarm_leader }}"
       command: docker node ls --filter "id={{ hostvars[inventory_hostname]['node_id'] }}" --format "{{ '{{.ID}}' }}"
       register: post_leave_check
       changed_when: false
       ignore_errors: yes
 
-    - name: Debug - Post-leave check
+    - name: Debug - Post-leave check for node
       debug:
         msg: "Post-leave check for {{ inventory_hostname }}: {{ post_leave_check.stdout | default('not in swarm') }}"
 
@@ -225,7 +226,7 @@
       debug:
         msg: "Updating leader: {{ inventory_hostname }} (ID: {{ hostvars[inventory_hostname]['node_id'] | default('') }})"
 
-    - name: Safety Check - List current manager node IDs (delegated to a backup manager)
+    - name: Safety Check - List current manager node IDs (via backup manager)
       delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
       command: docker node ls --filter "role=manager" --format "{{ '{{.ID}}' }}"
       register: manager_list
@@ -246,11 +247,11 @@
       register: remove_result
       failed_when: remove_result.rc != 0
 
-    - name: Pause to allow removal to propagate
+    - name: Pause to allow stale record removal to propagate
       pause:
         seconds: 10
 
-    - name: Verify stale leader record is removed (delegated to backup manager)
+    - name: Verify stale leader record is removed (via backup manager)
       delegate_to: "{{ groups['orange'] | difference([swarm_leader]) | first }}"
       command: docker node ls --filter "id={{ swarm_leader_id }}" --format "{{ '{{.ID}}' }}"
       register: node_check
