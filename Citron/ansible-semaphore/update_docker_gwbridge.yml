@@ -44,7 +44,7 @@
       delegate_to: localhost
       set_fact:
         swarm_leader: "{{ groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first | default('') }}"
-        swarm_leader_id: "{{ hostvars[(groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first)]['detected_leader_id'] | default('') }}"
+        swarm_leader_id: "{{ hostvars[ (groups['orange'] | map('extract', hostvars, 'detected_leader') | select('defined') | list | first) ]['detected_leader_id'] | default('') }}"
       
     - name: Debug - Final Swarm leader (global)
       run_once: true
@@ -64,7 +64,7 @@
         swarm_leader: "{{ swarm_leader }}"
         swarm_leader_id: "{{ swarm_leader_id }}"
 
-# PLAY 3: Define the Network Configuration (Single Definition)
+# PLAY 3: Define Network Configuration
 - name: Define docker_gwbridge network configuration
   hosts: orange
   gather_facts: no
@@ -81,7 +81,7 @@
             com.docker.network.bridge.name: docker_gwbridge
             com.docker.network.bridge.gateway_mode_ipv6: routed
 
-# PLAY 4: Fetch Join Tokens from the Leader (Run on Leader Only)
+# PLAY 4: Fetch Join Tokens from the Leader
 - name: Fetch and set join tokens on leader
   hosts: orange
   gather_facts: no
@@ -201,7 +201,7 @@
       when: (node_role.stdout | trim) == "manager"
       ignore_errors: yes
 
-# PLAY 7: Update the Leader Node (Processed Last) using Node IDs
+# PLAY 7: Update the Leader Node (Processed Last) Using Node IDs
 - name: Update Swarm Leader (Processed Last)
   hosts: orange
   serial: 1
