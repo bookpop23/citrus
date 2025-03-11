@@ -1,4 +1,26 @@
-# Play 1: Gather swarm node info on each node
+# Play: Set docker_gwbridge network configuration on localhost
+- name: Set docker_gwbridge network configuration on localhost
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Set docker_gwbridge configuration fact
+      set_fact:
+        docker_gwbridge_config:
+          driver: "bridge"
+          ipam_config:
+            - subnet: "172.22.0.0/24"
+            - subnet: "2600:1702:6650:9b20:22::/80"
+          enable_ipv6: true
+          driver_options:
+            com.docker.network.bridge.name: "docker_gwbridge"
+            com.docker.network.bridge.gateway_mode_ipv6: "routed"
+            com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
+
+    - name: Debug - Display docker_gwbridge configuration fact
+      debug:
+        msg: "docker_gwbridge_config: {{ docker_gwbridge_config }}"
+
+# Play: Gather swarm node info on each node
 - name: Gather Docker host info and set swarm_node_info fact
   hosts: orange
   gather_facts: no
@@ -21,7 +43,7 @@
       debug:
         msg: "Host: {{ swarm_node_info.hostname }}, NodeID: {{ swarm_node_info.node_id }}, NodeAddr: {{ swarm_node_info.node_addr }}, InSwarm: {{ swarm_node_info.in_swarm }}, Role: {{ swarm_node_info.role }}"
 
-# Play 2: Aggregate global swarm node information on localhost
+# Play: Aggregate global swarm node information on localhost
 - name: Aggregate global swarm node information
   hosts: localhost
   gather_facts: no
@@ -34,7 +56,7 @@
       debug:
         var: global_swarm_nodes
 
-# Play 3: Fetch join token from an active manager
+# Play: Fetch join token from an active manager
 - name: Fetch join token from an active manager
   hosts: localhost
   gather_facts: no
@@ -61,7 +83,7 @@
       debug:
         msg: "Worker token: {{ worker_token }}, Swarm leader IP: {{ swarm_leader_ip }}"
 
-# Play 4: Update Worker Nodes
+# Play: Update Worker Nodes
 - name: Update Worker Nodes
   hosts: orange
   serial: 1
@@ -102,10 +124,10 @@
     - name: Create new docker_gwbridge network
       community.docker.docker_network:
         name: docker_gwbridge
-        driver: "{{ docker_gwbridge_config.driver }}"
-        ipam_config: "{{ docker_gwbridge_config.ipam_config }}"
-        driver_options: "{{ docker_gwbridge_config.driver_options }}"
-        enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
+        driver: "{{ hostvars['localhost'].docker_gwbridge_config.driver }}"
+        ipam_config: "{{ hostvars['localhost'].docker_gwbridge_config.ipam_config }}"
+        driver_options: "{{ hostvars['localhost'].docker_gwbridge_config.driver_options }}"
+        enable_ipv6: "{{ hostvars['localhost'].docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin swarm as worker
       command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ swarm_leader_ip }}:2377
@@ -115,7 +137,7 @@
       debug:
         msg: "Join swarm output: {{ join_result.stdout }}"
 
-# Play 5: Update Manager Nodes
+# Play: Update Manager Nodes
 - name: Update Manager Nodes
   hosts: orange
   serial: 1
@@ -172,10 +194,10 @@
     - name: Create new docker_gwbridge network
       community.docker.docker_network:
         name: docker_gwbridge
-        driver: "{{ docker_gwbridge_config.driver }}"
-        ipam_config: "{{ docker_gwbridge_config.ipam_config }}"
-        driver_options: "{{ docker_gwbridge_config.driver_options }}"
-        enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
+        driver: "{{ hostvars['localhost'].docker_gwbridge_config.driver }}"
+        ipam_config: "{{ hostvars['localhost'].docker_gwbridge_config.ipam_config }}"
+        driver_options: "{{ hostvars['localhost'].docker_gwbridge_config.driver_options }}"
+        enable_ipv6: "{{ hostvars['localhost'].docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin swarm as worker
       command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ swarm_leader_ip }}:2377
