@@ -1,15 +1,1 @@
-- name: Parse and display Docker Swarm details
-  hosts: orange
-  gather_facts: no
-  become: yes
-  tasks:
-    - name: Get Docker host info
-      community.docker.docker_host_info:
-      register: docker_host_info_result
-
-    - name: Debug - Display Swarm details (NodeID, LocalNodeState, and Role)
-      debug:
-        msg: >
-          Node ID: {{ docker_host_info_result.info.Swarm.NodeID }},
-          LocalNodeState: {{ docker_host_info_result.info.Swarm.LocalNodeState }},
-          Role: {{ docker_host_info_result.info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}
+docker_host_info_result.
