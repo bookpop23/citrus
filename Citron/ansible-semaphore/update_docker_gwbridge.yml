@@ -35,3 +35,25 @@
       debug:
         var: global_swarm_nodes
 
+- name: Define docker_gwbridge network configuration
+  hosts: orange
+  gather_facts: no
+  tasks:
+    - name: Set docker_gwbridge configuration fact
+      set_fact:
+        docker_gwbridge_config:
+          driver: "bridge"
+          ipam_config:
+            - subnet: "172.22.0.0/24"
+            - subnet: "2600:1702:6650:9b20:22::/80"
+          enable_ipv6: true
+          driver_options:
+            com.docker.network.bridge.name: "docker_gwbridge"
+            com.docker.network.bridge.gateway_mode_ipv6: "routed"
+            com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
+
+    - name: Debug - Display docker_gwbridge configuration fact
+      debug:
+        msg: "docker_gwbridge_config: {{ docker_gwbridge_config }}"
+
+
