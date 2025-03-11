@@ -13,12 +13,13 @@
         swarm_node_info:
           hostname: "{{ inventory_hostname }}"
           node_id: "{{ docker_host_info_result.host_info.Swarm.NodeID }}"
+          node_addr: "{{ docker_host_info_result.host_info.Swarm.NodeAddr }}"
           in_swarm: "{{ docker_host_info_result.host_info.Swarm.LocalNodeState == 'active' }}"
           role: "{{ docker_host_info_result.host_info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}"
 
     - name: Debug - Display swarm node info for the node
       debug:
-        msg: "Host: {{ swarm_node_info.hostname }}, NodeID: {{ swarm_node_info.node_id }}, InSwarm: {{ swarm_node_info.in_swarm }}, Role: {{ swarm_node_info.role }}"
+        msg: "Host: {{ swarm_node_info.hostname }}, NodeID: {{ swarm_node_info.node_id }}, NodeAddr: {{ swarm_node_info.node_addr }}, InSwarm: {{ swarm_node_info.in_swarm }}, Role: {{ swarm_node_info.role }}"
 
 # Play 2: Aggregate global swarm node information on localhost
 - name: Aggregate global swarm node information
@@ -52,9 +53,9 @@
         worker_token: "{{ worker_token_result.stdout }}"
       delegate_to: localhost
 
-    - name: Set swarm leader IP fact (using active manager's ansible_host)
+    - name: Set swarm leader IP fact (using active manager's Docker info)
       set_fact:
-        swarm_leader_ip: "{{ hostvars[active_manager].ansible_host }}"
+        swarm_leader_ip: "{{ hostvars[active_manager].swarm_node_info.node_addr }}"
 
     - name: Debug - Display worker token and swarm leader IP
       debug:
@@ -85,7 +86,7 @@
 
     - name: Remove node record from swarm using delegated manager
       delegate_to: "{{ delegated_manager }}"
-      command: docker node rm  {{ swarm_node_info.node_id }}
+      command: docker node rm {{ swarm_node_info.node_id }}
       register: node_rm_result
 
     - name: Debug - Confirm node removal result
