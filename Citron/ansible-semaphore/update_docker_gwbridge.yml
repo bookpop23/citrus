@@ -7,13 +7,17 @@
       community.docker.docker_host_info:
       register: docker_host_info_result
 
+    - name: Debug - Display raw Docker host info result
+      debug:
+        var: docker_host_info_result
+
     - name: Set local swarm node fact based on Docker host info
       set_fact:
         swarm_node_info:
           hostname: "{{ inventory_hostname }}"
-          in_swarm: "{{ docker_host_info_result.info.Swarm.LocalNodeState == 'active' }}"
-          node_id: "{{ docker_host_info_result.info.Swarm.NodeID | default('not_in_swarm') }}"
-          role: "{{ docker_host_info_result.info.Swarm.ControlAvailable | default(false) | bool | ternary('manager', 'worker') }}"
+          in_swarm: "{{ docker_host_info_result.Swarm.LocalNodeState == 'active' }}"
+          node_id: "{{ docker_host_info_result.Swarm.NodeID | default('not_in_swarm') }}"
+          role: "{{ docker_host_info_result.Swarm.ControlAvailable | default(false) | bool | ternary('manager', 'worker') }}"
 
     - name: Debug - Display Docker swarm info for the node
       debug:
