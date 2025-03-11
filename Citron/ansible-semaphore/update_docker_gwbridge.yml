@@ -53,14 +53,15 @@
             com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
 
 
+# PLAY 2 - UPDATE WORKER NODES
 
-- name: Update worker nodes - leave swarm, remove node, update network, and rejoin swarm
+- name: Update Worker Nodes
   hosts: orange
   serial: 1
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip if node is not a worker
+    - name: Skip processing if node is not a worker
       meta: end_play
       when: swarm_node_info.role != 'worker'
 
@@ -72,8 +73,12 @@
       debug:
         msg: "Leave swarm output: {{ leave_result.stdout }}"
 
-    - name: Remove node record from swarm (delegated to leader)
-      delegate_to: "{{ swarm_leader }}"
+    - name: Remove node record from swarm using another active manager
+      delegate_to: "{{ (global_swarm_nodes 
+                          | selectattr('role', 'equalto', 'manager') 
+                          | map(attribute='hostname') 
+                          | difference([inventory_hostname]) 
+                          | list)[0] }}"
       command: docker node rm --force {{ swarm_node_info.node_id }}
       register: node_rm_result
 
@@ -106,18 +111,24 @@
 
 
 
-- name: Update manager nodes - demote, leave swarm, remove node, update network, rejoin swarm, and promote back to manager
+# PLAY 3 - UPDATE MANAGER NODES
+
+- name: Update Manager Nodes
   hosts: orange
   serial: 1
   gather_facts: no
   become: yes
   tasks:
-    - name: Skip if node is not a manager
+    - name: Skip processing if node is not a manager
       meta: end_play
       when: swarm_node_info.role != 'manager'
 
-    - name: Demote manager to worker (delegated to leader)
-      delegate_to: "{{ swarm_leader }}"
+    - name: Demote manager to worker using another active manager
+      delegate_to: "{{ (global_swarm_nodes 
+                          | selectattr('role', 'equalto', 'manager') 
+                          | map(attribute='hostname') 
+                          | difference([inventory_hostname]) 
+                          | list)[0] }}"
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: worker
@@ -136,8 +147,12 @@
       debug:
         msg: "Leave swarm output: {{ leave_result.stdout }}"
 
-    - name: Remove node record from swarm (delegated to leader)
-      delegate_to: "{{ swarm_leader }}"
+    - name: Remove node record from swarm using another active manager
+      delegate_to: "{{ (global_swarm_nodes 
+                          | selectattr('role', 'equalto', 'manager') 
+                          | map(attribute='hostname') 
+                          | difference([inventory_hostname]) 
+                          | list)[0] }}"
       command: docker node rm --force {{ swarm_node_info.node_id }}
       register: node_rm_result
 
@@ -167,8 +182,12 @@
       debug:
         msg: "Join swarm output: {{ join_result.stdout }}"
 
-    - name: Promote node back to manager (delegated to leader)
-      delegate_to: "{{ swarm_leader }}"
+    - name: Promote node back to manager using another active manager
+      delegate_to: "{{ (global_swarm_nodes 
+                          | selectattr('role', 'equalto', 'manager') 
+                          | map(attribute='hostname') 
+                          | difference([inventory_hostname]) 
+                          | list)[0] }}"
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: manager
