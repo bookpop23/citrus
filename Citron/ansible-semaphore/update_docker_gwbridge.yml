@@ -1,24 +1,30 @@
-- name: Gather swarm info using community.docker module
+- name: Gather swarm info using the community.docker module with error handling
   hosts: orange
   gather_facts: no
   become: yes
   tasks:
-    - name: Get Docker swarm info using the community.docker module
-      community.docker.docker_swarm_info:
-      register: swarm_info_result
+    - name: Get swarm info (manager case) or assume worker on error
+      block:
+        - name: Get Docker swarm info using community.docker module
+          community.docker.docker_swarm_info:
+          register: swarm_info_result
 
-    - name: Debug - Display swarm info output
-      debug:
-        var: swarm_info_result
+        - name: Set local swarm node fact for manager node
+          set_fact:
+            swarm_node_info:
+              hostname: "{{ inventory_hostname }}"
+              in_swarm: "{{ swarm_info_result.swarm.LocalNodeState == 'active' }}"
+              node_id: "{{ swarm_info_result.swarm.NodeID }}"
+              role: "{{ swarm_info_result.swarm.ControlAvailable | bool | ternary('manager', 'worker') }}"
+      rescue:
+        - name: Set local swarm node fact for worker node (error assumed)
+          set_fact:
+            swarm_node_info:
+              hostname: "{{ inventory_hostname }}"
+              in_swarm: true
+              node_id: "unknown"
+              role: "worker"
 
-    - name: Set local swarm node fact
-      set_fact:
-        swarm_node_info:
-          hostname: "{{ inventory_hostname }}"
-          in_swarm: "{{ swarm_info_result.swarm.LocalNodeState == 'active' }}"
-          node_id: "{{ swarm_info_result.swarm.NodeID }}"
-          role: "{{ swarm_info_result.swarm.ControlAvailable | bool | ternary('manager', 'worker') }}"
-
-    - name: Debug - Show parsed swarm node info
+    - name: Debug - Show local swarm node info
       debug:
         msg: "Host {{ inventory_hostname }}: Node ID={{ swarm_node_info.node_id }}, In Swarm={{ swarm_node_info.in_swarm }}, Role={{ swarm_node_info.role }}"
