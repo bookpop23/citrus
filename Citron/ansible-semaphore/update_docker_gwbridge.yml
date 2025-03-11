@@ -22,3 +22,15 @@
           In Swarm: {{ swarm_node_info.in_swarm }},
           Node ID: {{ swarm_node_info.node_id }},
           Role: {{ swarm_node_info.role }}
+
+    - name: Aggregate swarm node information from all nodes
+      hosts: localhost
+      gather_facts: no
+      tasks:
+        - name: Build global swarm nodes list from host facts
+          set_fact:
+            global_swarm_nodes: "{{ groups['orange'] | map('extract', hostvars, 'swarm_node_info') | list }}"
+
+        - name: Debug - Display global swarm nodes list
+          debug:
+            var: global_swarm_nodes
