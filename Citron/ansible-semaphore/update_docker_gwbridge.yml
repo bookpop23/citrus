@@ -54,7 +54,7 @@
 
 
 
-- name: Update worker nodes: leave swarm, remove node, update network, and rejoin swarm
+- name: Update worker nodes - leave swarm, remove node, update network, and rejoin swarm
   hosts: orange
   serial: 1
   gather_facts: no
@@ -106,7 +106,7 @@
 
 
 
-- name: Update manager nodes: demote, leave swarm, remove node, update network, rejoin swarm, and promote back to manager
+- name: Update manager nodes - demote, leave swarm, remove node, update network, rejoin swarm, and promote back to manager
   hosts: orange
   serial: 1
   gather_facts: no
