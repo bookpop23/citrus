@@ -1,4 +1,5 @@
-- name: Gather Docker Swarm details and set local facts
+# Play 1: Gather swarm node info on each node
+- name: Gather Docker host info and set swarm_node_info fact
   hosts: orange
   gather_facts: no
   become: yes
@@ -7,7 +8,7 @@
       community.docker.docker_host_info:
       register: docker_host_info_result
 
-    - name: Set local swarm node fact based on Docker host info
+    - name: Set swarm_node_info fact
       set_fact:
         swarm_node_info:
           hostname: "{{ inventory_hostname }}"
@@ -15,19 +16,16 @@
           in_swarm: "{{ docker_host_info_result.host_info.Swarm.LocalNodeState == 'active' }}"
           role: "{{ docker_host_info_result.host_info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}"
 
-    - name: Debug - Display limited Docker swarm info for the node
+    - name: Debug - Display swarm node info for the node
       debug:
-        msg: >
-          Host: {{ swarm_node_info.hostname }},
-          In Swarm: {{ swarm_node_info.in_swarm }},
-          Node ID: {{ swarm_node_info.node_id }},
-          Role: {{ swarm_node_info.role }}
+        msg: "Host: {{ swarm_node_info.hostname }}, NodeID: {{ swarm_node_info.node_id }}, InSwarm: {{ swarm_node_info.in_swarm }}, Role: {{ swarm_node_info.role }}"
 
-- name: Aggregate swarm node information from all nodes
+# Play 2: Aggregate global swarm node information on localhost
+- name: Aggregate global swarm node information
   hosts: localhost
   gather_facts: no
   tasks:
-    - name: Build global swarm nodes list from host facts
+    - name: Build global swarm nodes list
       set_fact:
         global_swarm_nodes: "{{ groups['orange'] | map('extract', hostvars, 'swarm_node_info') | list }}"
 
@@ -35,112 +33,34 @@
       debug:
         var: global_swarm_nodes
 
-- name: Define docker_gwbridge network configuration
-  hosts: orange
+# Play 3: Fetch join token from an active manager
+- name: Fetch join token from an active manager
+  hosts: localhost
   gather_facts: no
   tasks:
-    - name: Set docker_gwbridge configuration fact
+    - name: Set active manager fact
       set_fact:
-        docker_gwbridge_config:
-          driver: "bridge"
-          ipam_config:
-            - subnet: "172.22.0.0/24"
-            - subnet: "2600:1702:6650:9b20:22::/80"
-          enable_ipv6: true
-          driver_options:
-            com.docker.network.bridge.name: "docker_gwbridge"
-            com.docker.network.bridge.gateway_mode_ipv6: "routed"
-            com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
+        active_manager: "{{ (global_swarm_nodes | selectattr('role','equalto','manager') | map(attribute='hostname') | list)[0] }}"
+    
+    - name: Fetch worker join token from active manager
+      delegate_to: "{{ active_manager }}"
+      command: docker swarm join-token -q worker
+      register: worker_token_result
 
-- name: Update Manager Nodes
-  hosts: orange
-  serial: 1
-  gather_facts: no
-  become: yes
-  tasks:
-    - name: Skip processing if node is not a manager
-      meta: end_play
-      when: swarm_node_info.role != 'manager'
+    - name: Set global worker token fact on localhost
+      set_fact:
+        worker_token: "{{ worker_token_result.stdout }}"
+      delegate_to: localhost
 
-    - name: Demote manager to worker using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
-      community.docker.docker_node:
-        hostname: "{{ inventory_hostname }}"
-        role: worker
-      register: demote_result
-      ignore_errors: yes
+    - name: Set swarm leader IP fact (using active manager's ansible_host)
+      set_fact:
+        swarm_leader_ip: "{{ hostvars[active_manager].ansible_host }}"
 
-    - name: Debug - Confirm demotion output
+    - name: Debug - Display worker token and swarm leader IP
       debug:
-        msg: "Demotion output: {{ demote_result }}"
+        msg: "Worker token: {{ worker_token }}, Swarm leader IP: {{ swarm_leader_ip }}"
 
-    - name: Have node leave the swarm
-      command: docker swarm leave --force
-      register: leave_result
-
-    - name: Debug - Confirm swarm leave result
-      debug:
-        msg: "Leave swarm output: {{ leave_result.stdout }}"
-
-    - name: Remove node record from swarm using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
-      command: docker node rm --force {{ swarm_node_info.node_id }}
-      register: node_rm_result
-
-    - name: Debug - Confirm node removal result
-      debug:
-        msg: "Node removal output: {{ node_rm_result.stdout }}"
-
-    - name: Remove old docker_gwbridge network
-      community.docker.docker_network:
-        name: docker_gwbridge
-        state: absent
-      ignore_errors: yes
-
-    - name: Create new docker_gwbridge network
-      community.docker.docker_network:
-        name: docker_gwbridge
-        driver: "{{ docker_gwbridge_config.driver }}"
-        ipam_config: "{{ docker_gwbridge_config.ipam_config }}"
-        driver_options: "{{ docker_gwbridge_config.driver_options }}"
-        enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
-
-    - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
-      register: join_result
-
-    - name: Debug - Confirm swarm join output
-      debug:
-        msg: "Join swarm output: {{ join_result.stdout }}"
-
-    - name: Promote node back to manager using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
-      community.docker.docker_node:
-        hostname: "{{ inventory_hostname }}"
-        role: manager
-      register: promote_result
-      ignore_errors: yes
-
-    - name: Debug - Confirm promotion output
-      debug:
-        msg: "Promotion output: {{ promote_result }}"
-
-
-
-# PLAY 2 - UPDATE WORKER NODES
-
+# Play 4: Update Worker Nodes
 - name: Update Worker Nodes
   hosts: orange
   serial: 1
@@ -159,13 +79,13 @@
       debug:
         msg: "Leave swarm output: {{ leave_result.stdout }}"
 
-    - name: Remove node record from swarm using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
-      command: docker node rm --force {{ swarm_node_info.node_id }}
+    - name: Set delegated manager for removal (worker)
+      set_fact:
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
+
+    - name: Remove node record from swarm using delegated manager
+      delegate_to: "{{ delegated_manager }}"
+      command: docker node rm  {{ swarm_node_info.node_id }}
       register: node_rm_result
 
     - name: Debug - Confirm node removal result
@@ -194,10 +114,7 @@
       debug:
         msg: "Join swarm output: {{ join_result.stdout }}"
 
-
-
-# PLAY 3 - UPDATE MANAGER NODES
-
+# Play 5: Update Manager Nodes
 - name: Update Manager Nodes
   hosts: orange
   serial: 1
@@ -208,12 +125,12 @@
       meta: end_play
       when: swarm_node_info.role != 'manager'
 
-    - name: Demote manager to worker using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
+    - name: Set delegated manager for demotion (manager)
+      set_fact:
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
+
+    - name: Demote manager to worker using delegated manager
+      delegate_to: "{{ delegated_manager }}"
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: worker
@@ -225,52 +142,20 @@
         msg: "Demotion output: {{ demote_result }}"
 
     - name: Have node leave the swarm
-      command: docker swarm leave --force
-      register: leave_result
-
-    - name: Debug - Confirm swarm leave result
-      debug:
-        msg: "Leave- name: Update Manager Nodes"
-  hosts: orange
-  serial: 1
-  gather_facts: no
-  become: yes
-  tasks:
-    - name: Skip processing if node is not a manager
-      meta: end_play
-      when: swarm_node_info.role != 'manager'
-
-    - name: Demote manager to worker using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
-      community.docker.docker_node:
-        hostname: "{{ inventory_hostname }}"
-        role: worker
-      register: demote_result
-      ignore_errors: yes
-
-    - name: Debug - Confirm demotion output
-      debug:
-        msg: "Demotion output: {{ demote_result }}"
-
-    - name: Have node leave the swarm
-      command: docker swarm leave --force
+      command: docker swarm leave
       register: leave_result
 
     - name: Debug - Confirm swarm leave result
       debug:
         msg: "Leave swarm output: {{ leave_result.stdout }}"
 
-    - name: Remove node record from swarm using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
-      command: docker node rm --force {{ swarm_node_info.node_id }}
+    - name: Set delegated manager for removal (manager)
+      set_fact:
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
+
+    - name: Remove node record from swarm using delegated manager
+      delegate_to: "{{ delegated_manager }}"
+      command: docker node rm {{ swarm_node_info.node_id }}
       register: node_rm_result
 
     - name: Debug - Confirm node removal result
@@ -299,12 +184,12 @@
       debug:
         msg: "Join swarm output: {{ join_result.stdout }}"
 
-    - name: Promote node back to manager using another active manager
-      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
-                          | selectattr('role', 'equalto', 'manager') 
-                          | map(attribute='hostname') 
-                          | difference([inventory_hostname]) 
-                          | list)[0] }}"
+    - name: Set delegated manager for promotion (manager)
+      set_fact:
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
+
+    - name: Promote node back to manager using delegated manager
+      delegate_to: "{{ delegated_manager }}"
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: manager
