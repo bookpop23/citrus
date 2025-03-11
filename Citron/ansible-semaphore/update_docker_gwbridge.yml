@@ -74,7 +74,7 @@
         msg: "Leave swarm output: {{ leave_result.stdout }}"
 
     - name: Remove node record from swarm using another active manager
-      delegate_to: "{{ (global_swarm_nodes 
+      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
                           | selectattr('role', 'equalto', 'manager') 
                           | map(attribute='hostname') 
                           | difference([inventory_hostname]) 
@@ -110,7 +110,6 @@
 
 
 
-
 # PLAY 3 - UPDATE MANAGER NODES
 
 - name: Update Manager Nodes
@@ -124,7 +123,7 @@
       when: swarm_node_info.role != 'manager'
 
     - name: Demote manager to worker using another active manager
-      delegate_to: "{{ (global_swarm_nodes 
+      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
                           | selectattr('role', 'equalto', 'manager') 
                           | map(attribute='hostname') 
                           | difference([inventory_hostname]) 
@@ -148,7 +147,7 @@
         msg: "Leave swarm output: {{ leave_result.stdout }}"
 
     - name: Remove node record from swarm using another active manager
-      delegate_to: "{{ (global_swarm_nodes 
+      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
                           | selectattr('role', 'equalto', 'manager') 
                           | map(attribute='hostname') 
                           | difference([inventory_hostname]) 
@@ -183,7 +182,7 @@
         msg: "Join swarm output: {{ join_result.stdout }}"
 
     - name: Promote node back to manager using another active manager
-      delegate_to: "{{ (global_swarm_nodes 
+      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
                           | selectattr('role', 'equalto', 'manager') 
                           | map(attribute='hostname') 
                           | difference([inventory_hostname]) 
