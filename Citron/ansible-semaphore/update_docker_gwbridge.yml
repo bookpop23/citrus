@@ -54,8 +54,6 @@
 
 
 
-# PLAY - UPDATE WORKER NODES
-
 - name: Update worker nodes: leave swarm, remove node, update network, and rejoin swarm
   hosts: orange
   serial: 1
@@ -107,7 +105,6 @@
 
 
 
-# PLAY - UPDATE MANAGER NODES
 
 - name: Update manager nodes: demote, leave swarm, remove node, update network, rejoin swarm, and promote back to manager
   hosts: orange
