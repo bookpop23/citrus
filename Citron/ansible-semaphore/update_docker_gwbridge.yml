@@ -230,7 +230,7 @@
 
     - name: Debug - Confirm swarm leave result
       debug:
-        msg: "Leave- name: Update Manager Nodes
+        msg: "Leave- name: Update Manager Nodes"
   hosts: orange
   serial: 1
   gather_facts: no
