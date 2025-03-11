@@ -14,6 +14,6 @@
     - name: Debug - Display Swarm details (NodeID, LocalNodeState, and Role)
       debug:
         msg: >
-          Node ID: {{ docker_host_info_result.Swarm.NodeID }},
-          LocalNodeState: {{ docker_host_info_result.Swarm.LocalNodeState }},
-          Role: {{ docker_host_info_result.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}
+          Node ID: {{ docker_host_info_result.host_info.Swarm.NodeID }},
+          LocalNodeState: {{ docker_host_info_result.host_info.Swarm.LocalNodeState }},
+          Role: {{ docker_host_info_result.host_info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}
