@@ -1,4 +1,4 @@
-- name: Parse and display Docker Swarm details using top-level Swarm key
+- name: Gather Docker Swarm details and set local facts
   hosts: orange
   gather_facts: no
   become: yes
@@ -7,13 +7,18 @@
       community.docker.docker_host_info:
       register: docker_host_info_result
 
-    - name: Debug - Display raw Docker host info for inspection
-      debug:
-        var: docker_host_info_result
+    - name: Set local swarm node fact based on Docker host info
+      set_fact:
+        swarm_node_info:
+          hostname: "{{ inventory_hostname }}"
+          node_id: "{{ docker_host_info_result.host_info.Swarm.NodeID }}"
+          in_swarm: "{{ docker_host_info_result.host_info.Swarm.LocalNodeState == 'active' }}"
+          role: "{{ docker_host_info_result.host_info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}"
 
-    - name: Debug - Display Swarm details (NodeID, LocalNodeState, and Role)
+    - name: Debug - Display limited Docker swarm info for the node
       debug:
         msg: >
-          Node ID: {{ docker_host_info_result.host_info.Swarm.NodeID }},
-          LocalNodeState: {{ docker_host_info_result.host_info.Swarm.LocalNodeState }},
-          Role: {{ docker_host_info_result.host_info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}
+          Host: {{ swarm_node_info.hostname }},
+          In Swarm: {{ swarm_node_info.in_swarm }},
+          Node ID: {{ swarm_node_info.node_id }},
+          Role: {{ swarm_node_info.role }}
