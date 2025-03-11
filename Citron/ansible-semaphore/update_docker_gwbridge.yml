@@ -52,6 +52,20 @@
             com.docker.network.bridge.gateway_mode_ipv6: "routed"
             com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
 
+- name: Fetch join tokens from an active manager
+  hosts: some_active_manager
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Get worker join token
+      command: docker swarm join-token -q worker
+      register: worker_token_result
+
+    - name: Set worker token fact on localhost
+      set_fact:
+        worker_token: "{{ worker_token_result.stdout }}"
+      delegate_to: localhost
+
 
 # PLAY 2 - UPDATE WORKER NODES
 
