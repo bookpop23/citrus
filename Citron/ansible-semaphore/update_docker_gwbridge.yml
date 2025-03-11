@@ -187,7 +187,7 @@
         enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
+      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ swarm_leader_ip }}:2377
       register: join_result
 
     - name: Debug - Confirm swarm join output
@@ -195,9 +195,42 @@
         msg: "Join swarm output: {{ join_result.stdout }}"
 
 
+
 # PLAY 3 - UPDATE MANAGER NODES
 
 - name: Update Manager Nodes
+  hosts: orange
+  serial: 1
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Skip processing if node is not a manager
+      meta: end_play
+      when: swarm_node_info.role != 'manager'
+
+    - name: Demote manager to worker using another active manager
+      delegate_to: "{{ (hostvars['localhost'].global_swarm_nodes 
+                          | selectattr('role', 'equalto', 'manager') 
+                          | map(attribute='hostname') 
+                          | difference([inventory_hostname]) 
+                          | list)[0] }}"
+      community.docker.docker_node:
+        hostname: "{{ inventory_hostname }}"
+        role: worker
+      register: demote_result
+      ignore_errors: yes
+
+    - name: Debug - Confirm demotion output
+      debug:
+        msg: "Demotion output: {{ demote_result }}"
+
+    - name: Have node leave the swarm
+      command: docker swarm leave --force
+      register: leave_result
+
+    - name: Debug - Confirm swarm leave result
+      debug:
+        msg: "Leave- name: Update Manager Nodes
   hosts: orange
   serial: 1
   gather_facts: no
@@ -259,7 +292,7 @@
         enable_ipv6: "{{ docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ worker_token }} {{ swarm_leader_ip }}:2377
+      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ swarm_leader_ip }}:2377
       register: join_result
 
     - name: Debug - Confirm swarm join output
