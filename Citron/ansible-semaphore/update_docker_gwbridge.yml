@@ -1,4 +1,4 @@
-- name: Gather Docker host info including swarm details and display limited debug info
+- name: Gather Docker host info and display swarm details
   hosts: orange
   gather_facts: no
   become: yes
@@ -7,14 +7,22 @@
       community.docker.docker_host_info:
       register: docker_host_info_result
 
+    - name: Debug - Display Swarm section from Docker info
+      debug:
+        msg: "Swarm details for {{ inventory_hostname }}: {{ docker_host_info_result.info.Swarm }}"
+
     - name: Set local swarm node fact based on Docker host info
       set_fact:
         swarm_node_info:
           hostname: "{{ inventory_hostname }}"
-          in_swarm: "{{ (docker_host_info_result.info.Swarm | default({})).LocalNodeState | default('inactive') == 'active' }}"
-          node_id: "{{ (docker_host_info_result.info.Swarm | default({})).NodeID | default('not_in_swarm') }}"
-          role: "{{ (docker_host_info_result.info.Swarm | default({})).ControlAvailable | default(false) | bool | ternary('manager', 'worker') }}"
+          in_swarm: "{{ docker_host_info_result.info.Swarm.LocalNodeState == 'active' }}"
+          node_id: "{{ docker_host_info_result.info.Swarm.NodeID }}"
+          role: "{{ docker_host_info_result.info.Swarm.ControlAvailable | bool | ternary('manager', 'worker') }}"
 
     - name: Debug - Display limited Docker swarm info for the node
       debug:
-        msg: "Host: {{ swarm_node_info.hostname }}, In Swarm: {{ swarm_node_info.in_swarm }}, Node ID: {{ swarm_node_info.node_id }}, Role: {{ swarm_node_info.role }}"
+        msg: >
+          Host: {{ swarm_node_info.hostname }},
+          In Swarm: {{ swarm_node_info.in_swarm }},
+          Node ID: {{ swarm_node_info.node_id }},
+          Role: {{ swarm_node_info.role }}
