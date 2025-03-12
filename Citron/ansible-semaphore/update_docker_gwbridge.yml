@@ -116,7 +116,7 @@
       retries: 5
       delay: 10
 
-    - name: Remove node record from swarm using delegated manager
+    - name: Remove node record from swarm using delegated manager (worker)
       delegate_to: "{{ delegated_manager }}"
       command: docker node rm {{ swarm_node_info.node_id }}
       register: node_rm_result
@@ -139,8 +139,12 @@
         driver_options: "{{ hostvars['localhost'].docker_gwbridge_config.driver_options }}"
         enable_ipv6: "{{ hostvars['localhost'].docker_gwbridge_config.enable_ipv6 }}"
 
+    - name: Set join IP for rejoin command (worker)
+      set_fact:
+        join_ip: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role','equalto','manager') | map(attribute='node_addr') | difference([swarm_node_info.node_addr]) | list)[0] }}"
+
     - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ hostvars['localhost'].swarm_leader_ip }}:2377
+      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ join_ip }}:2377
       register: join_result
 
     - name: Debug - Confirm swarm join output
@@ -196,7 +200,7 @@
       retries: 5
       delay: 10
 
-    - name: Remove node record from swarm using delegated manager
+    - name: Remove node record from swarm using delegated manager (manager)
       delegate_to: "{{ delegated_manager }}"
       command: docker node rm {{ swarm_node_info.node_id }}
       register: node_rm_result
@@ -219,8 +223,12 @@
         driver_options: "{{ hostvars['localhost'].docker_gwbridge_config.driver_options }}"
         enable_ipv6: "{{ hostvars['localhost'].docker_gwbridge_config.enable_ipv6 }}"
 
+    - name: Set join IP for rejoin command (manager)
+      set_fact:
+        join_ip: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role','equalto','manager') | map(attribute='node_addr') | difference([swarm_node_info.node_addr]) | list)[0] }}"
+
     - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ hostvars['localhost'].swarm_leader_ip }}:2377
+      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ join_ip }}:2377
       register: join_result
 
     - name: Debug - Confirm swarm join output
