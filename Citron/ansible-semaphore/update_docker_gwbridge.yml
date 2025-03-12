@@ -67,6 +67,7 @@
     
     - name: Fetch worker join token from active manager
       delegate_to: "{{ active_manager }}"
+      become: yes
       command: docker swarm join-token -q worker
       register: worker_token_result
 
