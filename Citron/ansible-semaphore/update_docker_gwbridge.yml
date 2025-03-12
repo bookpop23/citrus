@@ -130,7 +130,7 @@
         enable_ipv6: "{{ hostvars['localhost'].docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ swarm_leader_ip }}:2377
+      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ hostvars['localhost'].swarm_leader_ip }}:2377
       register: join_result
 
     - name: Debug - Confirm swarm join output
@@ -200,7 +200,7 @@
         enable_ipv6: "{{ hostvars['localhost'].docker_gwbridge_config.enable_ipv6 }}"
 
     - name: Rejoin swarm as worker
-      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ swarm_leader_ip }}:2377
+      command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ hostvars['localhost'].swarm_leader_ip }}:2377
       register: join_result
 
     - name: Debug - Confirm swarm join output
