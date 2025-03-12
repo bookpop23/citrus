@@ -78,6 +78,8 @@ services:
     networks:
       - swarm-network
     environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
       - TZ=${TZ}
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
