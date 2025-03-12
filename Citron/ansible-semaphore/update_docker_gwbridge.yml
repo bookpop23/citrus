@@ -8,13 +8,13 @@
         docker_gwbridge_config:
           driver: "bridge"
           ipam_config:
-            - subnet: "172.22.0.0/16"
+            - subnet: "172.22.0.0/24"
             - subnet: "2600:1702:6650:9b20:22::/80"
           enable_ipv6: true
           driver_options:
             com.docker.network.bridge.name: "docker_gwbridge"
-            # com.docker.network.bridge.gateway_mode_ipv6: "routed"
-            com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:6022:32ff:fe75:6b72"
+            com.docker.network.bridge.gateway_mode_ipv6: "routed"
+            com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:22::1"
 
     - name: Debug - Display docker_gwbridge configuration fact
       debug:
@@ -107,6 +107,15 @@
       set_fact:
         delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
 
+    - name: Wait for node to be marked down before removal (worker)
+      delegate_to: "{{ delegated_manager }}"
+      become: yes
+      command: docker node inspect {{ swarm_node_info.node_id }} --format '{{ "{{ .Status.State }}" }}'
+      register: node_state
+      until: node_state.stdout | trim == "down"
+      retries: 5
+      delay: 10
+
     - name: Remove node record from swarm using delegated manager
       delegate_to: "{{ delegated_manager }}"
       command: docker node rm {{ swarm_node_info.node_id }}
@@ -155,6 +164,7 @@
 
     - name: Demote manager to worker using delegated manager
       delegate_to: "{{ delegated_manager }}"
+      become: yes
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: worker
@@ -176,6 +186,15 @@
     - name: Set delegated manager for removal (manager)
       set_fact:
         delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
+
+    - name: Wait for node to be marked down before removal (manager)
+      delegate_to: "{{ delegated_manager }}"
+      become: yes
+      command: docker node inspect {{ swarm_node_info.node_id }} --format '{{ "{{ .Status.State }}" }}'
+      register: node_state
+      until: node_state.stdout | trim == "down"
+      retries: 5
+      delay: 10
 
     - name: Remove node record from swarm using delegated manager
       delegate_to: "{{ delegated_manager }}"
@@ -214,6 +233,7 @@
 
     - name: Promote node back to manager using delegated manager
       delegate_to: "{{ delegated_manager }}"
+      become: yes
       community.docker.docker_node:
         hostname: "{{ inventory_hostname }}"
         role: manager
