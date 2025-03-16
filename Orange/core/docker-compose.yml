@@ -82,10 +82,6 @@ services:
       - PGADMIN_AUTHENTIK_CLIENT_ID=rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj
       - PGADMIN_AUTHENTIK_CLIENT_SECRET=w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf
       - PGADMIN_LISTEN_PORT=5050
-    ports:
-      - target: 5050
-        published: 5050
-        mode: ingress
     volumes:
       - $DOCKERDIR/appdata/pgadmin4/data:/var/lib/pgadmin
       - $DOCKERDIR/appdata/pgadmin4/config_local.py:/pgadmin4/config_local.py
