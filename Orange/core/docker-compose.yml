@@ -70,6 +70,8 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
+    command: >
+      /bin/sh -c "echo 'DEFAULT_SERVER_PORT = 5050' >> /pgadmin4/config.py && /entrypoint.sh"
     restart: unless-stopped
     secrets:
       - password
