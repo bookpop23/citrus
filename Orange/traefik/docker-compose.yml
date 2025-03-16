@@ -18,6 +18,9 @@ services:
       - target: 5432
         published: 5432
         mode: host  # ✅ PostgreSQL via Traefik
+      - target: 8080
+        published: 9090
+        mode: host  # ✅ Traefik Dashboard
     # dns:
     #   - 192.168.1.1
     healthcheck:
