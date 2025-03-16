@@ -68,43 +68,36 @@ services:
         - traefik.tcp.routers.postgresql.service=postgresql-service
         - traefik.tcp.services.postgresql-service.loadbalancer.server.port=5432
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    secrets:
-      - password
-    networks:
-      - swarm-network
-    ports:
-      - target: 80
-        published: 5050
-        protocol: tcp
-      - target: 443
-        published: 5051
-        protocol: tcp
-    environment:
-      - TZ=${TZ}
-      - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
-      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
-      - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=False
-      - PGADMIN_AUTHENTIK_CLIENT_ID=rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj
-      - PGADMIN_AUTHENTIK_CLIENT_SECRET=w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf
-      - PGADMIN_LISTEN_PORT=5050
-      - PGADMIN_SERVER_PORT=5050
-      - PGADMIN_LISTEN_ADDRESS=0.0.0.0
-    volumes:
-      - $DOCKERDIR/appdata/pgadmin4/data:/var/lib/pgadmin
-      - $DOCKERDIR/appdata/pgadmin4/config_local.py:/pgadmin4/config_local.py
-    deploy:
-      mode: replicated 
-      replicas: 1
-      labels:
-        - traefik.enable=true
-        - traefik.http.routers.pgadmin.rule=Host(`pgadmin.$HOSTNAME.$DOMAIN`) || Host(`pgadmin.$DOMAIN`)
-        - traefik.http.routers.pgadmin.entrypoints=websecure
-        - traefik.http.routers.pgadmin.tls=true
-        - traefik.http.routers.pgadmin.tls.certresolver=cloudflare
-        - traefik.http.routers.pgadmin.service=pgadmin
-        - traefik.http.services.pgadmin.loadbalancer.server.port=5050
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   secrets:
+  #     - password
+  #   networks:
+  #     - swarm-network
+  #   environment:
+  #     - TZ=${TZ}
+  #     - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
+  #     - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
+  #     - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=False
+  #     - PGADMIN_AUTHENTIK_CLIENT_ID=rHNE1teYhd4E2x2YCQIUBRrRdyJUfK62NF3etajj
+  #     - PGADMIN_AUTHENTIK_CLIENT_SECRET=w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf
+  #     - PGADMIN_LISTEN_PORT=5050
+  #     - PGADMIN_SERVER_PORT=5050
+  #     - PGADMIN_LISTEN_ADDRESS=0.0.0.0
+  #   volumes:
+  #     - $DOCKERDIR/appdata/pgadmin4/data:/var/lib/pgadmin
+  #     - $DOCKERDIR/appdata/pgadmin4/config_local.py:/pgadmin4/config_local.py
+  #   deploy:
+  #     mode: replicated 
+  #     replicas: 1
+  #     labels:
+  #       - traefik.enable=true
+  #       - traefik.http.routers.pgadmin.rule=Host(`pgadmin.$HOSTNAME.$DOMAIN`) || Host(`pgadmin.$DOMAIN`)
+  #       - traefik.http.routers.pgadmin.entrypoints=websecure
+  #       - traefik.http.routers.pgadmin.tls=true
+  #       - traefik.http.routers.pgadmin.tls.certresolver=cloudflare
+  #       - traefik.http.routers.pgadmin.service=pgadmin
+  #       - traefik.http.services.pgadmin.loadbalancer.server.port=5050
 
   adminer:
     image: adminer
