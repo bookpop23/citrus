@@ -70,16 +70,6 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    entrypoint:
-      - "/bin/sh"
-      - "-c"
-    command:
-      - >
-        echo "Stopping any existing Gunicorn processes..." &&
-        pkill gunicorn || true &&
-        sleep 3 &&
-        echo "Starting Gunicorn on port 5050..." &&
-        exec runuser -u pgadmin -- /venv/bin/gunicorn --bind 0.0.0.0:5050 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app
     secrets:
       - password
     networks:
