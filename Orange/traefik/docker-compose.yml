@@ -38,9 +38,6 @@ services:
       - HTPASSWD_FILE=/run/secrets/username_password
     deploy:
       mode: global 
-      placement:
-        constraints:
-          - node.role == manager
 
       labels:
         # Enable Traefik for this service, to make it available in the public network
