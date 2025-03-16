@@ -12,8 +12,6 @@ services:
       timeout: 3s
     volumes:
       - $DOCKERDIR/appdata/redis/data:/data
-    networks:
-      - swarm-network
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
@@ -28,6 +26,8 @@ services:
         - traefik.tcp.routers.redis.entrypoints=redis-tcp
         - traefik.tcp.routers.redis.service=redis-service
         - traefik.tcp.services.redis-service.loadbalancer.server.port=6379
+    networks:
+      - swarm-network
 
   postgresql:
     image: postgres:16-alpine
