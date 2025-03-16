@@ -72,7 +72,6 @@ services:
       - password
     networks:
       - swarm-network
-    privileged: true
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
