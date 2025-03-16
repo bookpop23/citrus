@@ -79,7 +79,7 @@ services:
         pkill gunicorn || true &&
         sleep 3 &&
         echo "Starting Gunicorn on port 5050..." &&
-        gunicorn --bind 0.0.0.0:5050 --timeout 300 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app
+        /usr/local/bin/gunicorn --bind 0.0.0.0:5050 --timeout 300 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app
     secrets:
       - password
     networks:
