@@ -2,7 +2,8 @@ services:
   redis:
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel debug
-    hostname: redis
+    networks:
+      - swarm-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
@@ -26,13 +27,13 @@ services:
         - traefik.tcp.routers.redis.entrypoints=redis-tcp
         - traefik.tcp.routers.redis.service=redis-service
         - traefik.tcp.services.redis-service.loadbalancer.server.port=6379
-    networks:
-      - swarm-network
+
 
   postgresql:
     image: postgres:16-alpine
-    hostname: postgresql
     restart: unless-stopped
+    networks:
+      - swarm-network        
     stop_grace_period: 30s
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
@@ -40,8 +41,7 @@ services:
       interval: 30s
       retries: 5
       timeout: 5s
-    networks:
-      - swarm-network    
+
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
@@ -112,7 +112,6 @@ services:
   notifiarr:
     image: golift/notifiarr:latest
     container_name: notifiarr
-    hostname: notifiarr-orange
     restart: unless-stopped
     networks:
       - swarm-network
