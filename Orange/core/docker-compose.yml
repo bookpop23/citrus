@@ -70,11 +70,6 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    command: >
-      /bin/sh -c "echo 'DEFAULT_SERVER_PORT = 5050' > /pgadmin4/config_local.py &&
-                  echo 'GUNICORN_BIND = \"0.0.0.0:5050\"' >> /pgadmin4/config_local.py &&
-                  pkill gunicorn || true &&
-                  gunicorn --bind 0.0.0.0:5050 --timeout 300 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app"
     restart: unless-stopped
     secrets:
       - password
