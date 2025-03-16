@@ -39,13 +39,6 @@ services:
     stop_grace_period: 30s
     networks:
       - swarm-network  
-    ports:
-      - target: 80
-        published: 5050
-        protocol: tcp
-      - target: 443
-        published: 5051
-        protocol: tcp
     # healthcheck:
     #   test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
     #   start_period: 300s
@@ -81,6 +74,13 @@ services:
       - password
     networks:
       - swarm-network
+    ports:
+      - target: 80
+        published: 5050
+        protocol: tcp
+      - target: 443
+        published: 5051
+        protocol: tcp
     environment:
       - TZ=${TZ}
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
