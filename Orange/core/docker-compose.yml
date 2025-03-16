@@ -83,6 +83,7 @@ services:
       - PGADMIN_AUTHENTIK_CLIENT_SECRET=w2YOyfudLV5evhynCsNjlb6lWImfHLIksNz1QMUP4AMues1nxqClMxovyZUfNnnQSUP3YbQtU2q2VdY9uw8NOhQtXACIgcF7EfCrYhWOW8SjMuUHaEhIqQIsp43H1Wtf
       - PGADMIN_LISTEN_PORT=5050
       - PGADMIN_SERVER_PORT=5050
+      - GUNICORN_CMD_ARGS=--bind 0.0.0.0:5050 --workers=2 --threads=4 --disable-redirects --log-leve=debug
     volumes:
       - $DOCKERDIR/appdata/pgadmin4/data:/var/lib/pgadmin
       - $DOCKERDIR/appdata/pgadmin4/config_local.py:/pgadmin4/config_local.py
