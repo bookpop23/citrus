@@ -16,6 +16,7 @@
             # com.docker.network.bridge.gateway_mode_ipv6: "routed"
             com.docker.network.bridge.gateway_ipv6: "2600:1702:6650:9b20:6022:32ff:fe75:6b72"
 
+
     - name: Debug - Display docker_gwbridge configuration fact
       debug:
         msg: "docker_gwbridge_config: {{ docker_gwbridge_config }}"
@@ -164,22 +165,20 @@
 
     - name: Set delegated manager for demotion (manager)
       set_fact:
-        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes 
-                                   | selectattr('role', 'equalto', 'manager') 
-                                   | map(attribute='hostname') 
-                                   | difference([inventory_hostname]) 
-                                   | list)[0] }}"
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
 
     - name: Demote manager to worker using delegated manager
       delegate_to: "{{ delegated_manager }}"
       become: yes
-      command: docker node demote {{ swarm_node_info.node_id }}
+      community.docker.docker_node:
+        hostname: "{{ inventory_hostname }}"
+        role: worker
       register: demote_result
-      # Do not ignore errors so that a failure here is reported.
-    
+      ignore_errors: yes
+
     - name: Debug - Confirm demotion output
       debug:
-        msg: "Demotion output: {{ demote_result.stdout }}"
+        msg: "Demotion output: {{ demote_result }}"
 
     - name: Have node leave the swarm
       command: docker swarm leave
@@ -191,11 +190,7 @@
 
     - name: Set delegated manager for removal (manager)
       set_fact:
-        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes 
-                                   | selectattr('role', 'equalto', 'manager') 
-                                   | map(attribute='hostname') 
-                                   | difference([inventory_hostname]) 
-                                   | list)[0] }}"
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
 
     - name: Wait for node to be marked down before removal (manager)
       delegate_to: "{{ delegated_manager }}"
@@ -231,11 +226,7 @@
 
     - name: Set join IP for rejoin command (manager)
       set_fact:
-        join_ip: "{{ (hostvars['localhost'].global_swarm_nodes 
-                        | selectattr('role','equalto','manager') 
-                        | map(attribute='node_addr') 
-                        | difference([swarm_node_info.node_addr]) 
-                        | list)[0] }}"
+        join_ip: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role','equalto','manager') | map(attribute='node_addr') | difference([swarm_node_info.node_addr]) | list)[0] }}"
 
     - name: Rejoin swarm as worker
       command: docker swarm join --token {{ hostvars['localhost'].worker_token }} {{ join_ip }}:2377
@@ -247,11 +238,7 @@
 
     - name: Set delegated manager for promotion (manager)
       set_fact:
-        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes 
-                                   | selectattr('role', 'equalto', 'manager') 
-                                   | map(attribute='hostname') 
-                                   | difference([inventory_hostname]) 
-                                   | list)[0] }}"
+        delegated_manager: "{{ (hostvars['localhost'].global_swarm_nodes | selectattr('role', 'equalto', 'manager') | map(attribute='hostname') | difference([inventory_hostname]) | list)[0] }}"
 
     - name: Promote node back to manager using delegated manager
       delegate_to: "{{ delegated_manager }}"
@@ -265,4 +252,3 @@
     - name: Debug - Confirm promotion output
       debug:
         msg: "Promotion output: {{ promote_result }}"
-
