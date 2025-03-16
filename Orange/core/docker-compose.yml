@@ -70,11 +70,17 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    command: >
-      /bin/sh -c "pkill gunicorn || true &&
-                  sleep 3 &&
-                  gunicorn --bind 0.0.0.0:5050 --timeout 300 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app"
-    restart: unless-stopped
+  entrypoint: ["/bin/sh", "-c"]
+  command:
+    - |
+      echo 'DEFAULT_SERVER_PORT = 5050' > /pgadmin4/config_local.py &&
+      echo 'GUNICORN_BIND = "0.0.0.0:5050"' >> /pgadmin4/config_local.py &&
+      echo "Stopping any existing Gunicorn processes..."
+      pkill gunicorn || true &&
+      sleep 3 &&
+      echo "Starting Gunicorn on port 5050..."
+      gunicorn --bind 0.0.0.0:5050 --timeout 300 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app
+  ports:
     secrets:
       - password
     networks:
