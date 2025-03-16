@@ -7,7 +7,7 @@ services:
     networks:
       - swarm-network
     ports: 
-      - 6379:6379
+      - 6389:6379
     # healthcheck:
     #   test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
     #   start_period: 60s
