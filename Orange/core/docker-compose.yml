@@ -79,7 +79,7 @@ services:
         pkill gunicorn || true &&
         sleep 3 &&
         echo "Starting Gunicorn on port 5050..." &&
-        setpriv --reuid=pgadmin --regid=pgadmin --init-groups /venv/bin/gunicorn --bind 0.0.0.0:5050 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app
+        exec runuser -u pgadmin -- /venv/bin/gunicorn --bind 0.0.0.0:5050 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app
     secrets:
       - password
     networks:
