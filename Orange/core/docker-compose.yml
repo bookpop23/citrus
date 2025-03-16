@@ -70,6 +70,10 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
+    command: >
+      /bin/sh -c "pkill gunicorn || true &&
+                  sleep 3 &&
+                  gunicorn --bind 0.0.0.0:5050 --timeout 300 --workers=2 --threads=4 --access-logfile '-' --error-logfile '-' pgAdmin4:app"
     restart: unless-stopped
     secrets:
       - password
