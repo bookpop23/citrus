@@ -3,24 +3,29 @@ services:
   traefik:
     image: traefik:latest
     restart: unless-stopped
-    network_mode: host  # This allows Traefik to directly bind to the host's IPv6 address
+    networks:
+      - swarm-network
+    ports:
+      - target: 80
+        published: 80
+        mode: host
+      - target: 443
+        published: 443
+        mode: host
+      - target: 6379
+        published: 6379
+        mode: host  # ✅ Redis via Traefik
+      - target: 5432
+        published: 5432
+        mode: host  # ✅ PostgreSQL via Traefik
+    # dns:
+    #   - 192.168.1.1
     healthcheck:
       test: ["CMD-SHELL", "/bin/ash", "-c", "traefik healthcheck"]
       start_period: 90s
       interval: 30s
       retries: 5
       timeout: 3s
-    # ports:
-    #   - target: 80
-    #     published: 80
-    #     protocol: tcp
-    #     mode: ingress
-    #   - target: 443
-    #     published: 443
-    #     protocol: tcp
-    #     mode: ingress
-    # dns:
-    #   - 192.168.1.1
     secrets:
       - username_password
       - cf_dns_api_token

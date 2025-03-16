@@ -31,8 +31,8 @@ services:
         # 6379/tcp
         - traefik.tcp.routers.redis.rule=HostSNI(`*`)
         - traefik.tcp.routers.redis.entrypoints=redis-tcp
-        - traefik.tcp.routers.redis.service=redis
-        - traefik.tcp.services.redis.loadbalancer.server.port=6379
+        - traefik.tcp.routers.redis.service=redis-service
+        - traefik.tcp.services.redis-service.loadbalancer.server.port=6379
 
   postgresql:
     image: postgres:16-alpine
@@ -67,8 +67,8 @@ services:
         - traefik.enable=true
         - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
         - traefik.tcp.routers.postgresql.entrypoints=postgresql-tcp
-        - traefik.tcp.routers.postgresql.service=postgresql
-        - traefik.tcp.services.postgresql.loadbalancer.server.port=5432
+        - traefik.tcp.routers.postgresql.service=postgresql-service
+        - traefik.tcp.services.postgresql-service.loadbalancer.server.port=5432
 
   pgadmin:
     image: dpage/pgadmin4:latest
