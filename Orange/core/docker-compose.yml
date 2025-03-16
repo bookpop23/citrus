@@ -43,11 +43,9 @@ services:
       - target: 80
         published: 5050
         protocol: tcp
-        mode: ingress
       - target: 443
         published: 5051
         protocol: tcp
-        mode: ingress
     # healthcheck:
     #   test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
     #   start_period: 300s
