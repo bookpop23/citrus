@@ -61,12 +61,12 @@ services:
     deploy:
       mode: replicated 
       replicas: 1
-      labels:
-        - traefik.enable=true
-        - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
-        - traefik.tcp.routers.postgresql.entrypoints=postgresql-tcp
-        - traefik.tcp.routers.postgresql.service=postgresql-service
-        - traefik.tcp.services.postgresql-service.loadbalancer.server.port=5432
+      # labels:
+      #   - traefik.enable=true
+      #   - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
+      #   - traefik.tcp.routers.postgresql.entrypoints=postgresql-tcp
+      #   - traefik.tcp.routers.postgresql.service=postgresql-service
+      #   - traefik.tcp.services.postgresql-service.loadbalancer.server.port=5432
 
   # pgadmin:
   #   image: dpage/pgadmin4:latest
