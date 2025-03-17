@@ -51,11 +51,11 @@ services:
       - TZ=${TZ}
       - POSTGRES_USER=${PG_USER:?database username required}
       - POSTGRES_PASSWORD=${PG_PASS:?database password required}
-    # ports:
-    #   - target: 5432
-    #     published: 5432
-    #     protocol: tcp
-    #     mode: ingress
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: ingress
     volumes:
       - $DOCKERDIR/appdata/postgresql/data:/var/lib/postgresql/data
     deploy:
