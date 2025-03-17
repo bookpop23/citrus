@@ -61,6 +61,8 @@ services:
     deploy:
       mode: replicated 
       replicas: 1
+      constraint:
+        - node.platform.os == linux
       # labels:
       #   - traefik.enable=true
       #   - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
