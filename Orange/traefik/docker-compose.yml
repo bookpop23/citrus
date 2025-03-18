@@ -102,4 +102,7 @@ secrets:
   cf_dns_api_token:
     external: true
 
-networks: {}
+networks:
+  host:  # ✅ Explicitly declare the host network
+    external: true
+    name: host
