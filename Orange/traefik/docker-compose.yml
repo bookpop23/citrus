@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     networks:
       - swarm-network
+    network_mode: "host"
     ports:
       - target: 80
         published: 80
