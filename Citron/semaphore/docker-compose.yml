@@ -23,8 +23,8 @@ services:
             SEMAPHORE_DB_USER: semaphore
             SEMAPHORE_DB_PASS: 9ddbe040551488770d6f7a5a61200694
             SEMAPHORE_DB_OPTIONS: '{"sslmode":"disable"}'
-            SEMAPHORE_ADMIN: reid.sprite
-            SEMAPHORE_ADMIN_PASSWORD: password
+            SEMAPHORE_ADMIN: admin
+            SEMAPHORE_ADMIN_PASSWORD: "23WhiteCn!Star"
             SEMAPHORE_ADMIN_NAME: Reid Sprite
             SEMAPHORE_ADMIN_EMAIL: reid@reidsprite.com
             SEMAPHORE_ACCESS_KEY_ENCRYPTION: 89ybj/fT3BaGwZgOdSLb/8skLBLZwleYRqKjI7LkbMw=
