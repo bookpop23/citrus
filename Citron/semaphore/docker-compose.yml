@@ -13,9 +13,12 @@ services:
             - bridge_ipv6
 
     semaphore:
-        ports:
-            - 3000:3000
         image: semaphoreui/semaphore:latest
+        restart: unless-stopped
+        depends_on:
+          - postgres
+        ports:
+          - 3000:3000
         environment:
             PUID: 1026
             PGID: 100
@@ -25,19 +28,19 @@ services:
             SEMAPHORE_DB_USER: semaphore
             SEMAPHORE_DB_PASS: 9ddbe040551488770d6f7a5a61200694
             SEMAPHORE_DB_OPTIONS: '{"sslmode":"disable"}'
-            SEMAPHORE_ADMIN: admin
-            SEMAPHORE_ADMIN_PASSWORD: "23WhiteCn!Star"
-            SEMAPHORE_ADMIN_NAME: Reid Sprite
-            SEMAPHORE_ADMIN_EMAIL: reid@reidsprite.com
+            # SEMAPHORE_ADMIN: admin
+            # SEMAPHORE_ADMIN_PASSWORD: "23WhiteCn!Star"
+            # SEMAPHORE_ADMIN_NAME: Reid Sprite
+            # SEMAPHORE_ADMIN_EMAIL: reid@reidsprite.com
             SEMAPHORE_ACCESS_KEY_ENCRYPTION: 89ybj/fT3BaGwZgOdSLb/8skLBLZwleYRqKjI7LkbMw=
             SEMAPHORE_WEB_ROOT: '/'
             # SEMAPHORE_OIDC_ACTIVATED: "yes"
             # SEMAPHORE_OIDC_DISPLAY_NAME: "Sign in with authentik"
             # SEMAPHORE_OIDC_PROVIDER_NAME: "authentik"
-            # SEMAPHORE_OIDC_PROVIDER_URL: "https://auth.reidsprite.com/application/o/ansible-semaphore/"
+            # SEMAPHORE_OIDC_PROVIDER_URL: "https://auth.reidsprite.com/application/o/semaphore-semaphore/"
             # SEMAPHORE_OIDC_CLIENT_ID: "sn10N2nf52qoWzlV7KsxWZUXMVAObVTHgzDdKSpl"
             # SEMAPHORE_OIDC_CLIENT_SECRET: "hcxgKQJFUDjkKtMdAjS1UD9erTfdFcUVa0B8Fh4Ry8dhZKveB0AnYurfRsxsRhBCCuH8p2PerJOffMALvCWvyi4Kn69FNjlAlVLPVMcAMHP2uebknkMRnrric8DQdgWa"
-            # SEMAPHORE_OIDC_REDIRECT_URL: "https://ansible.citrus.reidsprite.com/api/auth/oidc/authentik/redirect/"
+            # SEMAPHORE_OIDC_REDIRECT_URL: "https://semaphore.citrus.reidsprite.com/api/auth/oidc/authentik/redirect/"
             # SEMAPHORE_OIDC_SCOPES: "openid profile email"
             # SEMAPHORE_OIDC_USERNAME_CLAIM: "username"
             # SEMAPHORE_OIDC_NAME_CLAIM: "name"
@@ -45,21 +48,19 @@ services:
             # ANSIBLE_HOST_KEY_CHECKING: False
         labels:
           - traefik.enable=true
-          - traefik.http.routers.ansible.rule=Host(`ansible.$HOSTNAME.$DOMAIN`)
-          - traefik.http.routers.ansible.entrypoints=websecure
-          - traefik.http.routers.ansible.tls=true
-          - traefik.http.routers.ansible.tls.certresolver=cloudflare
-          - traefik.http.routers.ansible.service=ansible
-          - traefik.http.services.ansible.loadbalancer.server.port=3000
+          - traefik.http.routers.semaphore.rule=Host(`semaphore.$HOSTNAME.$DOMAIN`)
+          - traefik.http.routers.semaphore.entrypoints=websecure
+          - traefik.http.routers.semaphore.tls=true
+          - traefik.http.routers.semaphore.tls.certresolver=cloudflare
+          - traefik.http.routers.semaphore.service=semaphore
+          - traefik.http.services.semaphore.loadbalancer.server.port=3000
         volumes:
             - /volume1/docker/semaphore/data:/data:rw
             - /volume1/docker/semaphore/config:/etc/semaphore:rw
             - /volume1/docker/semaphore/tmp:/tmp/semaphore:rw
         networks:
             - bridge_ipv6
-        restart: unless-stopped
-        depends_on:
-          - postgres
+
 networks:
     bridge_ipv6:
       external: true
