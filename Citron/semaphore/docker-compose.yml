@@ -1,6 +1,8 @@
 services:
     postgres:
         image: postgres
+        restart: unless-stopped
+        stop_grace_period: 30s
         environment:
             POSTGRES_USER: semaphore
             POSTGRES_PASSWORD: 9ddbe040551488770d6f7a5a61200694
@@ -9,7 +11,7 @@ services:
           - /volume1/docker/postgres/data:/var/lib/postgresql/data
         networks:
             - bridge_ipv6
-        restart: unless-stopped
+
     semaphore:
         ports:
             - 3000:3000
