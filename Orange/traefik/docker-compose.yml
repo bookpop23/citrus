@@ -3,9 +3,8 @@ services:
   traefik:
     image: traefik:latest
     restart: unless-stopped
-    # networks:
-    #   - swarm-network
-    network_mode: "host"
+    networks:
+      - host
     # ports:
     #   - target: 80
     #     published: 80
