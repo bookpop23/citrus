@@ -88,8 +88,6 @@ services:
       - $DOCKERDIR/appdata/traefik/data/rules:/rules   # Dynamic File Provider directory
       # Logs
       - $DOCKERDIR/appdata/traefik/logs:/logs
-    networks:
-      - host
 
 #configs:
 #  traefik.yml:
@@ -104,5 +102,5 @@ secrets:
 networks:
   # Use the previously created public network "traefik-public", shared with other
   # services that need to be publicly available via this Traefik
-  host:
+  swarm-network:
     external: true

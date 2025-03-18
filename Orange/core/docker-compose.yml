@@ -63,7 +63,8 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.platform.os == linux
+      #    - node.platform.os == linux
+          - node.role == manager
       # labels:
       #   - traefik.enable=true
       #   - traefik.tcp.routers.postgresql.rule=HostSNI(`*`)
