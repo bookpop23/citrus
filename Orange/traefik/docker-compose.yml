@@ -102,6 +102,4 @@ secrets:
   cf_dns_api_token:
     external: true
 
-# networks:
-#   swarm-network:
-#     external: true
+networks: {}
