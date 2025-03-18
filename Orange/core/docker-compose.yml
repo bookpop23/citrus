@@ -23,6 +23,9 @@ services:
     deploy:
       mode: replicated 
       replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
       labels:
         - traefik.enable=true
         # 6379/tcp
@@ -30,7 +33,6 @@ services:
         - traefik.tcp.routers.redis.entrypoints=redis-tcp
         - traefik.tcp.routers.redis.service=redis-service
         - traefik.tcp.services.redis-service.loadbalancer.server.port=6379
-
 
   postgresql:
     image: postgres:16-alpine
