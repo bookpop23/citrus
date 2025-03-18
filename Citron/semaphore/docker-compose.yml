@@ -34,18 +34,18 @@ services:
             # SEMAPHORE_ADMIN_EMAIL: reid@reidsprite.com
             SEMAPHORE_ACCESS_KEY_ENCRYPTION: 89ybj/fT3BaGwZgOdSLb/8skLBLZwleYRqKjI7LkbMw=
             SEMAPHORE_WEB_ROOT: '/'
-            # SEMAPHORE_OIDC_ACTIVATED: "yes"
-            # SEMAPHORE_OIDC_DISPLAY_NAME: "Sign in with authentik"
-            # SEMAPHORE_OIDC_PROVIDER_NAME: "authentik"
-            # SEMAPHORE_OIDC_PROVIDER_URL: "https://auth.reidsprite.com/application/o/semaphore-semaphore/"
-            # SEMAPHORE_OIDC_CLIENT_ID: "sn10N2nf52qoWzlV7KsxWZUXMVAObVTHgzDdKSpl"
-            # SEMAPHORE_OIDC_CLIENT_SECRET: "hcxgKQJFUDjkKtMdAjS1UD9erTfdFcUVa0B8Fh4Ry8dhZKveB0AnYurfRsxsRhBCCuH8p2PerJOffMALvCWvyi4Kn69FNjlAlVLPVMcAMHP2uebknkMRnrric8DQdgWa"
-            # SEMAPHORE_OIDC_REDIRECT_URL: "https://semaphore.citrus.reidsprite.com/api/auth/oidc/authentik/redirect/"
-            # SEMAPHORE_OIDC_SCOPES: "openid profile email"
-            # SEMAPHORE_OIDC_USERNAME_CLAIM: "username"
-            # SEMAPHORE_OIDC_NAME_CLAIM: "name"
-            # SEMAPHORE_OIDC_EMAIL_CLAIM: "email"          
-            # ANSIBLE_HOST_KEY_CHECKING: False
+            SEMAPHORE_OIDC_ACTIVATED: "yes"
+            SEMAPHORE_OIDC_DISPLAY_NAME: "Sign in with authentik"
+            SEMAPHORE_OIDC_PROVIDER_NAME: "authentik"
+            SEMAPHORE_OIDC_PROVIDER_URL: "https://auth.reidsprite.com/application/o/semaphore-semaphore/"
+            SEMAPHORE_OIDC_CLIENT_ID: "sn10N2nf52qoWzlV7KsxWZUXMVAObVTHgzDdKSpl"
+            SEMAPHORE_OIDC_CLIENT_SECRET: "hcxgKQJFUDjkKtMdAjS1UD9erTfdFcUVa0B8Fh4Ry8dhZKveB0AnYurfRsxsRhBCCuH8p2PerJOffMALvCWvyi4Kn69FNjlAlVLPVMcAMHP2uebknkMRnrric8DQdgWa"
+            SEMAPHORE_OIDC_REDIRECT_URL: "https://semaphore.citrus.reidsprite.com/api/auth/oidc/authentik/redirect/"
+            SEMAPHORE_OIDC_SCOPES: "openid profile email"
+            SEMAPHORE_OIDC_USERNAME_CLAIM: "username"
+            SEMAPHORE_OIDC_NAME_CLAIM: "name"
+            SEMAPHORE_OIDC_EMAIL_CLAIM: "email"          
+            ANSIBLE_HOST_KEY_CHECKING: False
         labels:
           - traefik.enable=true
           - traefik.http.routers.semaphore.rule=Host(`semaphore.$HOSTNAME.$DOMAIN`)
