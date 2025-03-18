@@ -33,7 +33,7 @@ services:
             # SEMAPHORE_ADMIN_NAME: Reid Sprite
             # SEMAPHORE_ADMIN_EMAIL: reid@reidsprite.com
             SEMAPHORE_ACCESS_KEY_ENCRYPTION: 89ybj/fT3BaGwZgOdSLb/8skLBLZwleYRqKjI7LkbMw=
-            SEMAPHORE_WEB_ROOT: '/'
+            # SEMAPHORE_WEB_ROOT: '/'
             # SEMAPHORE_OIDC_ACTIVATED: "yes"
             # SEMAPHORE_OIDC_DISPLAY_NAME: "Sign in with authentik"
             # SEMAPHORE_OIDC_PROVIDER_NAME: "authentik"
