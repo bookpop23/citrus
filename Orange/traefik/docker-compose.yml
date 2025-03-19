@@ -4,7 +4,6 @@ services:
     image: traefik:latest
     restart: unless-stopped
     networks:
-      - host
       - swarm-network
     ports:
       - target: 80
@@ -103,7 +102,5 @@ secrets:
     external: true
 
 networks:
-  host:  # ✅ Explicitly declare the host network
-    external: true
   swarm-network:
     external: true
