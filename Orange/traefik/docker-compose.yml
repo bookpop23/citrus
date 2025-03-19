@@ -105,5 +105,5 @@ secrets:
 networks:
   # host:  # ✅ Explicitly declare the host network
   #   external: true
-  swarm-newtork:
+  swarm-network:
     external: true
