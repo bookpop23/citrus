@@ -20,6 +20,9 @@ services:
         published: 53
         protocol: udp
         mode: host
+      - target: 80
+        published: 8091
+        protocol: tcp
     environment:
       TZ: $TZ
       FTLCONF_webserver_api_password: ''
