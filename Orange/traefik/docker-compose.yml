@@ -2,7 +2,6 @@ services:
 
   traefik:
     image: traefik:latest
-    restart: unless-stopped
     cap_add: 
       - NET_BIND_SERVICE
     networks:
@@ -40,9 +39,8 @@ services:
       - HTPASSWD_FILE=/run/secrets/username_password
     deploy:
       mode: global
-      placement:
-        constraints:
-          - node.role == manager
+      restart_policy:
+        condition: on failure
       labels:
         # Enable Traefik for this service, to make it available in the public network
         - traefik.enable=true
