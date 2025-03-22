@@ -1,7 +1,6 @@
 services:
   pihole:
     image: pihole/pihole:latest
-    hostname: pihole
     # healthcheck:
     #   test: ["CMD", "curl", "-sS", "http://172.22.0.1:8091/admin/index.php"]
     #   interval: 30s
@@ -11,7 +10,7 @@ services:
     depends_on:
       - unbound
     networks:
-      - swarm-network  # Allow Swarm services to use Pi-hole as DNS
+      - traefik-public  # Allow Swarm services to use Pi-hole as DNS
     ports:
       - target: 53
         published: 53
@@ -41,9 +40,6 @@ services:
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)"
@@ -70,10 +66,10 @@ services:
 
   unbound:
     image: sgaduuw/unbound:latest
+    networks:
+      - traefik-public
     deploy:
       replicas: 3
-    networks:
-      - swarm-network
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
@@ -86,5 +82,5 @@ services:
       start_period: 30s
 
 networks:
-  swarm-network:
+  traefik-public:
     external: true  # This uses an existing Docker Swarm network to allow Pi-hole to communicate with other services in the Swarm
