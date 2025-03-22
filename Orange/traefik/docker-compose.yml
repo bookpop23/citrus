@@ -38,6 +38,9 @@ services:
       - HTPASSWD_FILE=/run/secrets/username_password
     deploy:
       mode: global
+      placement:
+        constraints:
+          - node.role == manager
       restart_policy:
         condition: on-failure
         delay: 5s
