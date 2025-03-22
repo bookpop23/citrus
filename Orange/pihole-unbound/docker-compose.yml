@@ -12,20 +12,21 @@ services:
     networks:
       - traefik-public  # Allow Swarm services to use Pi-hole as DNS
     ports:
-      # - target: 53
-      #   published: 53
-      #   protocol: tcp
-      #   mode: host
-      # - target: 53
-      #   published: 53
-      #   protocol: udp
-      #   mode: host
+      - target: 53
+        published: 53
+        protocol: tcp
+        mode: host
+      - target: 53
+        published: 53
+        protocol: udp
+        mode: host
       - target: 80
         published: 8091
         protocol: tcp
     environment:
       TZ: $TZ
       FTLCONF_webserver_api_password: ''
+      FTLCONF_dns_interface: 'eth0'
       # FTLCONF_dns_upstreams: 'unbound#53'
       # FTLCONF_dns_listeningMode: 'all'
       # FTLCONF_dns_dnssec: 'true'
