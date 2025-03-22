@@ -21,7 +21,7 @@ services:
         published: 5432
         mode: host  # ✅ PostgreSQL via Traefik
       - target: 8080
-        published: 8080
+        published: 9090
         mode: host  # ✅ Traefik Dashboard
     healthcheck:
       test: ["CMD-SHELL", "/bin/ash", "-c", "traefik healthcheck"]
