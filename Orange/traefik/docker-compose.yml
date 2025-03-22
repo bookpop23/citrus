@@ -48,7 +48,7 @@ services:
         - traefik.enable=true
 
         # Use the traefik-public network (declared below)
-        # - traefik.swarm.network=traefik-public
+        - traefik.swarm.network=swarm-network
 
         # Use the custom label "traefik.constraint-label=traefik-public"
         # This public Traefik will only use services with this label
