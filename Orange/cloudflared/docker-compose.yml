@@ -4,7 +4,7 @@ services:
     image: cloudflare/cloudflared:latest
     command: tunnel --credentials-file /run/secrets/cf_tunnel_token run 178ea871-a479-4255-bec4-af3a576bcdfb
     secrets:
-      - cf_tunnel_token
+      - cf_argo_tunnel_token
     networks:
       - traefik-public
     dns:
@@ -13,7 +13,7 @@ services:
     deploy:
       replicas: 2
 secrets:
-  cf_tunnel_token:
+  cf_argo_tunnel_token:
     external: true
 networks:
   traefik-public:
