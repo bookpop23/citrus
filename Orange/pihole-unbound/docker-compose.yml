@@ -30,6 +30,7 @@ services:
       FTLCONF_webserver_api_password: ''
       # FTLCONF_dns_upstreams: 'unbound#53'
       FTLCONF_dns_listeningMode: 'all'
+      FTLCONF_dns_interface: 'eth0'  
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$HOSTNAME.$DOMAIN'
     cap_add:
