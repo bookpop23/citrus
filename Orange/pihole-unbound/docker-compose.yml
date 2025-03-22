@@ -15,15 +15,11 @@ services:
       - target: 53
         published: 53
         protocol: tcp
-        mode: ingress
+        mode: host
       - target: 53
         published: 53
         protocol: udp
-        mode: ingress
-      - target: 80
-        published: 8091
-        protocol: tcp
-        mode: ingress
+        mode: host
     environment:
       TZ: $TZ
       FTLCONF_webserver_api_password: ''
