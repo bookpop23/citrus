@@ -43,11 +43,11 @@ services:
       placement:
         constraints:
           - node.role == manager
-       resources:
-         limits:
-           memory: 256M
-         reservations:
-           memory: 128M
+        resources:
+          limits:
+            memory: 256M
+          reservations:
+            memory: 128M
 
   influxdb:
     image: influxdb:1.7
