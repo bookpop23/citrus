@@ -4,7 +4,6 @@ services:
   server:
     #image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
     image: ghcr.io/goauthentik/server:latest
-    restart: unless-stopped
     command: server
     environment:
       - TZ=${TZ}
@@ -19,19 +18,19 @@ services:
       - AUTHENTIK_WEB__WORKERS=2
       - AUTHENTIK_ERROR_REPORTING__ENABLED=true
     networks:
-      - swarm-network
+      - traefik-public
     volumes:
       - $DOCKERDIR/appdata/authentik/media:/media
       - $DOCKERDIR/appdata/authentik/custom-templates:/templates
-    ports:
-      - target: 9000
-        published: 9010
-        protocol: tcp
-        mode: ingress
-      - target: 9443
-        published: 9543
-        protocol: tcp
-        mode: ingress
+    # ports:
+    #   - target: 9000
+    #     published: 9010
+    #     protocol: tcp
+    #     mode: ingress
+    #   - target: 9443
+    #     published: 9543
+    #     protocol: tcp
+    #     mode: ingress
     deploy:
       labels:
         - traefik.enable=true
@@ -44,7 +43,6 @@ services:
   worker:
     # image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
     image: ghcr.io/goauthentik/server:latest
-    restart: unless-stopped
     command: worker
     deploy:
       replicas: 1
@@ -63,7 +61,7 @@ services:
     # (1000:1000 by default)
     user: root
     networks:
-      - swarm-network
+      - traefik-public
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - $DOCKERDIR/appdata/authentik/media:/media
@@ -73,14 +71,13 @@ services:
   whoami-individual:
     image: traefik/whoami:latest
     container_name: whoami-individual
-    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     depends_on:
       - server
       - worker
     networks:
-      - swarm-network
+      - traefik-public
     environment:
       - TZ=${TZ}
       - PGID=${PGID}
@@ -101,14 +98,13 @@ services:
   whoami-catchall:
     image: traefik/whoami:latest
     container_name: whoami-catchall
-    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     depends_on:
       - server
       - worker
     networks:
-      - swarm-network
+      - traefik-public
     environment:
       - TZ=${TZ}
     deploy:
@@ -125,5 +121,5 @@ services:
         - traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
 
 networks:
-  swarm-network:
+  traefik-public:
     external: true
