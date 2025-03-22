@@ -39,6 +39,9 @@ services:
       - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.pihole == true
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)"
