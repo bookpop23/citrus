@@ -6,22 +6,15 @@ services:
     secrets:
       - cf_tunnel_token
     networks:
-      - swarm-network
+      - traefik-public
     dns:
       - 192.168.1.11
       - 192.168.1.22
-      - 192.168.1.33
-      - 192.168.1.44
     deploy:
       replicas: 2
-      #placement:
-      #  constraints:
-      #    - node.role == manager
-      #labels:
-      #  - traefik.http.services.cloudflared.loadbalancer.server.port=9000
 secrets:
   cf_tunnel_token:
     external: true
 networks:
-  swarm-network:
+  traefik-public:
     external: true
