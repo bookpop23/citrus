@@ -12,14 +12,14 @@ services:
     networks:
       - traefik-public  # Allow Swarm services to use Pi-hole as DNS
     ports:
-      - target: 53
-        published: 53
-        protocol: tcp
-        mode: host
-      - target: 53
-        published: 53
-        protocol: udp
-        mode: host
+      # - target: 53
+      #   published: 53
+      #   protocol: tcp
+      #   mode: host
+      # - target: 53
+      #   published: 53
+      #   protocol: udp
+      #   mode: host
       - target: 80
         published: 8091
         protocol: tcp
@@ -43,16 +43,29 @@ services:
         constraints:
           - node.labels.pihole == true
       labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)"
-        - "traefik.http.routers.pihole.service=pihole"
-        - "traefik.http.routers.pihole.entrypoints=websecure"
-        - "traefik.http.routers.pihole.tls=true"
-        - "traefik.http.routers.pihole.tls.certresolver=cloudflare"
-        - "traefik.http.services.pihole.loadbalancer.server.port=80"
+        - traefik.enable=true
+        
+        ## TCP Routers/Services for Admin Interface
+        - traefik.http.routers.pihole-rtr.service=pihole-svc       
+        - traefik.http.routers.pihole-rtr.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.pihole-rtr.entrypoints=websecure
+        - traefik.http.routers.pihole-rtr.tls=true
+        - traefik.http.routers.pihole-rtr.tls.certresolver=cloudflare
+        - traefik.http.services.pihole-svc.loadbalancer.server.port=80
+
+        ## TCP Routers/Service
+        - "traefik.tcp.routers.pihole-tcp-rtr.entrypoints=dns-tcp"
+        - "traefik.tcp.routers.pihole-tcp-rtr.rule=HostSNI(`*`)"
+        - "traefik.tcp.routers.pihole-tcp-rtr.service=pihole-tcp-svc"
+        - "traefik.tcp.services.pihole-tcp-svc.loadbalancer.server.port=53"
+
+        ## UDP Routers/Services
+        - "traefik.udp.routers.pihole-udp-rtr.entrypoints=dns-udp"
+        - "traefik.udp.routers.pihole-udp-rtr.service=pihole-udp-svc"
+        - "traefik.udp.services.pihole-udp-svc.loadbalancer.server.port=53"
 
         # Attach the defined middleware to a router
-        - "traefik.http.routers.pihole.middlewares=pihole-redirectregex"
+        - traefik.http.routers.pihole-rtr.middlewares=pihole-redirectregex
         # Define a middleware regex
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$HOSTNAME.$DOMAIN/$$"
         # Define a replacement
