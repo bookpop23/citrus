@@ -40,6 +40,7 @@ services:
         - traefik.http.routers.authentik.rule=Host(`authentik.$HOSTNAME.$DOMAIN`) || Host(`auth.$DOMAIN`)
         - traefik.http.routers.authentik.service=authentik
         - traefik.http.routers.authentik.priority=1
+        - traefik.http.routers.authentik-output.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)
         - traefik.http.routers.authentik.tls=true
         - traefik.http.routers.authentik.tls.certresolver=cloudflare
         - traefik.http.services.authentik.loadbalancer.server.port=9000
