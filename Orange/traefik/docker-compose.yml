@@ -10,13 +10,13 @@ services:
     ports:
       - name: web
         target: 80          # Container Port
-        published: "80"     # STRING
+        published: 80
         protocol: tcp       # tcp or udp
         app_protocol: http  # OPTIONAL. Layer 7 Protocol used.  "Richer behavior"
         mode: host          # or Ingress for load balancing
       - name: websecure
         target: 443
-        published: "443"
+        published: 443
         protocol: tcp
         app_protocol: https
         mode: host
