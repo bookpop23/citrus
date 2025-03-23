@@ -70,7 +70,7 @@ services:
         - "traefik.http.routers.traefik.service=api@internal"
 
         # Define the port inside of the Docker service to use
-        - "traefik.http.services.traefik.loadbalancer.server.port=443"
+        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
     volumes:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
       - /var/run/docker.sock:/var/run/docker.sock
