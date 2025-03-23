@@ -89,10 +89,10 @@ services:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
       - /var/run/docker.sock:/var/run/docker.sock
       # Config
-      - $DOCKERDIR/appdata/traefik/data/traefik.yml:/etc/traefik/traefik.yml
+      #- $DOCKERDIR/appdata/traefik/data/traefik.yml:/etc/traefik/traefik.yml
       # Mount the volume to store the certificates
       - $DOCKERDIR/appdata/traefik/data/certs:/certs
-      - $DOCKERDIR/appdata/traefik/data/rules:/rules   # Dynamic File Provider directory
+      #- $DOCKERDIR/appdata/traefik/data/rules:/rules   # Dynamic File Provider directory
       # Logs
       - $DOCKERDIR/appdata/traefik/logs:/logs
 
