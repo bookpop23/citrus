@@ -12,8 +12,7 @@ services:
         published: 80
         protocol: tcp
         mode: host
-      - name: websecure
-        target: 443
+      - target: 443
         published: 443
         protocol: tcp
         mode: host
