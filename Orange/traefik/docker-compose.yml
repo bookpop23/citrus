@@ -23,12 +23,12 @@ services:
       - target: 8080
         published: 9090
         mode: host  # ✅ Traefik Dashboard
-    healthcheck:
-      test: ["CMD-SHELL", "/bin/ash", "-c", "traefik healthcheck"]
-      start_period: 90s
-      interval: 30s
-      retries: 5
-      timeout: 3s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "/bin/ash", "-c", "traefik healthcheck"]
+    #   start_period: 90s
+    #   interval: 30s
+    #   retries: 5
+    #   timeout: 3s
     secrets:
       - username_password
       - cf_dns_api_token
@@ -41,11 +41,11 @@ services:
       placement:
         constraints:
           - node.role == manager
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+      # restart_policy:
+      #   condition: on-failure
+      #   delay: 5s
+      #   max_attempts: 3
+      #   window: 120s
       labels:
         # Enable Traefik for this service, to make it available in the public network
         - traefik.enable=true
@@ -64,16 +64,16 @@ services:
         # - traefik.http.middlewares.test-auth.basicauth.usersfile=/run/secrets/user_pass_md5_file
 
         # traefik-https the actual router using HTTPS
-        - traefik.http.routers.traefik.rule=Host(`traefik.$HOSTNAME.$DOMAIN`) || Host(`traefik.$DOMAIN`)
-        - traefik.http.routers.traefik.entrypoints=websecure
-        - traefik.http.routers.traefik.tls=true
-        - traefik.http.routers.traefik.tls.certresolver=cloudflare
+        - "traefik.http.routers.traefik.rule=Host(`traefik.$HOSTNAME.$DOMAIN`) || Host(`traefik.$DOMAIN`)"
+        - "traefik.http.routers.traefik.entrypoints=websecure"
+        - "traefik.http.routers.traefik.tls=true"
+        - "traefik.http.routers.traefik.tls.certresolver=cloudflare"
         #- traefik.http.routers.traefik.tls.domains[0].main=$DOMAIN        
         #- traefik.http.routers.traefik.tls.domains[0].main=$HOSTNAME.$DOMAIN
         #- traefik.http.routers.traefik.tls.domains[0].sans=*.$HOSTNAME.$DOMAIN
 
         # Use the special Traefik service api@internal with the web UI/Dashboard
-        - traefik.http.routers.traefik.service=api@internal
+        - "traefik.http.routers.traefik.service=api@internal"
 
         # https-redirect middleware to redirect HTTP to HTTPS
         # It can be re-used by other stacks in other Docker Compose files
@@ -84,7 +84,7 @@ services:
         # - traefik.http.routers.traefik-public-https.middlewares=admin-auth
 
         # Define the port inside of the Docker service to use
-        - traefik.http.services.traefik.loadbalancer.server.port=443
+        - "traefik.http.services.traefik.loadbalancer.server.port=443"
     volumes:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
       - /var/run/docker.sock:/var/run/docker.sock
