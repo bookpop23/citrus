@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     privileged: true
     networks:
-      - swarm-network
+      - traefik-public
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
@@ -42,5 +42,5 @@ services:
         #- traefik.http.routers.ha.middlewares=forwardAuth-authentik@file
         - traefik.http.services.ha.loadbalancer.server.port=8123
 networks:
-  swarm-network:
+  traefik-public:
     external: true
