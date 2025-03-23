@@ -19,6 +19,8 @@ services:
       - AUTHENTIK_LOG_LEVEL=debug
       - AUTHENTIK_LOGGING__VERSION=1
       - AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level=DEBUG
+      - AUTHENTIK_DISABLE_EMBEDDED_OUTPOSTS=false
+      - AUTHENTIK_EMBEDDED_OUTPOSTS__TRAEFIK=true
     networks:
       - traefik-public
     volumes:
