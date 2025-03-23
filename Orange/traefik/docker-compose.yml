@@ -16,12 +16,12 @@ services:
         published: 443
         protocol: tcp
         mode: host
-      # - target: 6379
-      #   published: 6379
-      #   mode: host  # ✅ Redis via Traefik
-      # - target: 5432
-      #   published: 5432
-      #   mode: host  # ✅ PostgreSQL via Traefik
+      - target: 6379
+        published: 6379
+        mode: host  # ✅ Redis via Traefik
+      - target: 5432
+        published: 5432
+        mode: host  # ✅ PostgreSQL via Traefik
       # - target: 8080
       #   published: 9090
       #   mode: host  # ✅ Traefik Dashboard
