@@ -43,7 +43,7 @@ services:
         - "traefik.http.routers.authentik-output.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
         - "traefik.http.routers.authentik.tls=true"
         - "traefik.http.routers.authentik.tls.certresolver=cloudflare"
-        - "traefik.http.services.authentik.loadbalancer.server.url=http://authentik_server:9000/outpost.goauthentik.io"
+        #- "traefik.http.services.authentik.loadbalancer.server.url=http://authentik_server:9000/outpost.goauthentik.io"
         - "traefik.http.services.authentik.loadbalancer.server.port=9000"
   worker:
     image: ghcr.io/goauthentik/server:latest
