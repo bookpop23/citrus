@@ -53,11 +53,6 @@ services:
         # Use the traefik-public network (declared below)
         - traefik.swarm.network=traefik-public
 
-        # Use the custom label "traefik.constraint-label=traefik-public"
-        # This public Traefik will only use services with this label
-        # That way you can add other internal Traefik instances per stack if needed
-        # - traefik.constraint-label=traefik-public
-
         # admin-auth middleware with HTTP Basic auth
 
         # Using the environment variables USERNAME and HASHED_PASSWORD
