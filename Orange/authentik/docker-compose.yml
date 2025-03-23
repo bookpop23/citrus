@@ -2,7 +2,6 @@
 
 services:
   server:
-    #image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
     image: ghcr.io/goauthentik/server:latest
     command: server
     environment:
@@ -17,6 +16,9 @@ services:
       - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
       - AUTHENTIK_WEB__WORKERS=2
       - AUTHENTIK_ERROR_REPORTING__ENABLED=true
+      - AUTHENTIK_LOG_LEVEL=debug
+      - AUTHENTIK_LOGGING__VERSION=1
+      - AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level=DEBUG
     networks:
       - traefik-public
     volumes:
@@ -41,7 +43,6 @@ services:
         - traefik.http.routers.authentik.tls.certresolver=cloudflare
         - traefik.http.services.authentik.loadbalancer.server.port=9000
   worker:
-    # image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.2}
     image: ghcr.io/goauthentik/server:latest
     command: worker
     deploy:
