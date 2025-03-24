@@ -1,8 +1,8 @@
 services:
   traefik:
     image: traefik:latest
-    # cap_add: 
-    #   - NET_BIND_SERVICE
+    cap_add: 
+      - NET_BIND_SERVICE
     networks:
       - traefik-public
     # dns:
@@ -14,15 +14,12 @@ services:
       - target: 443
         published: 443
         mode: host
-      # - target: 6379
-      #   published: 6379
-      #   mode: host  # ✅ Redis via Traefik
-      # - target: 5432
-      #   published: 5432
-      #   mode: host  # ✅ PostgreSQL via Traefik
-      # - target: 8080
-      #   published: 9090
-      #   mode: host  # ✅ Traefik Dashboard
+      - target: 6379
+        published: 6379
+        mode: host  # ✅ Redis via Traefik
+      - target: 5432
+        published: 5432
+        mode: host  # ✅ PostgreSQL via Traefik
     # healthcheck:
     #   test: ["CMD-SHELL", "/bin/ash", "-c", "traefik healthcheck"]
     #   start_period: 90s
@@ -71,14 +68,11 @@ services:
         - traefik.http.services.traefik.loadbalancer.server.port=8080
     volumes:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Config
-      - $DOCKERDIR/appdata/traefik/data/traefik.yml:/etc/traefik/traefik.yml
-      # Mount the volume to store the certificates
-      - $DOCKERDIR/appdata/traefik/data/certs:/certs
-      - $DOCKERDIR/appdata/traefik/data/rules:/rules   # Dynamic File Provider directory
-      # Logs
-      # - $DOCKERDIR/appdata/traefik/logs:/logs
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "$DOCKERDIR/appdata/traefik/config/traefik.yml:/etc/traefik/traefik.yml"  # traefik.yaml
+      - "$DOCKERDIR/appdata/traefik/certs:/certs"                                 # acme.json defined in traefik.yaml
+      - "$DOCKERDIR/appdata/traefik/rules:/rules"                                 # Dynamic File Provider directory
+      - "$DOCKERDIR/appdata/traefik/logs:/logs"                                   # Logs       
 
 secrets:
   username_password:
