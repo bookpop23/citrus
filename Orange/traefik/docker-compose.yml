@@ -78,7 +78,7 @@ services:
       - $DOCKERDIR/appdata/traefik/data/certs:/certs
       - $DOCKERDIR/appdata/traefik/data/rules:/rules   # Dynamic File Provider directory
       # Logs
-      - $DOCKERDIR/appdata/traefik/logs:/logs
+      # - $DOCKERDIR/appdata/traefik/logs:/logs
 
 secrets:
   username_password:
