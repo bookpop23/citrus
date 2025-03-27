@@ -28,7 +28,7 @@ services:
           - node.role == manager
       labels:
         - traefik.enable=true
-        - traefik.http.routers.swarmpit.rule=Host(`swarmpit.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.swarmpit.rule=Host(`swarmpit.$DOMAIN`)
         - traefik.http.routers.swarmpit.entrypoints=websecure
         - traefik.http.routers.swarmpit.tls=true
         - traefik.http.routers.swarmpit.service=swarmpit

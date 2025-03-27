@@ -31,7 +31,7 @@ services:
       # FTLCONF_dns_upstreams: 'unbound#53'
       # FTLCONF_dns_listeningMode: 'all''  
       FTLCONF_dns_dnssec: 'true'
-      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$HOSTNAME.$DOMAIN'
+      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -49,7 +49,7 @@ services:
         
         ## TCP Routers/Services for Admin Interface
         - traefik.http.routers.pihole.service=pihole       
-        - traefik.http.routers.pihole.rule=Host(`pihole.$HOSTNAME.$DOMAIN`)
+        - traefik.http.routers.pihole.rule=Host(`pihole.$DOMAIN`)
         - traefik.http.routers.pihole.entrypoints=websecure
         - traefik.http.routers.pihole.tls=true
         - traefik.http.routers.pihole.tls.certresolver=cloudflare
@@ -58,9 +58,9 @@ services:
         # Attach the defined middleware to a router
         - traefik.http.routers.pihole.middlewares=pihole-redirectregex
         # Define a middleware regex
-        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$HOSTNAME.$DOMAIN/$$"
+        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$DOMAIN/$$"
         # Define a replacement
-        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$HOSTNAME.$DOMAIN/admin/"
+        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$DOMAIN/admin/"
 
         # # Middleware to redirect `/` to `/admin`
         # - "traefik.http.middlewares.pihole-redirect.redirectregex.regex=^https://(.*)/$$"
