@@ -113,7 +113,7 @@ services:
       replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.notifiarr-orange.rule=Host(`notifiarr.$DOMAIN`)
+        - traefik.http.routers.notifiarr-orange.rule=Host(`notifiarr-orange.$DOMAIN`)
         - traefik.http.routers.notifiarr-orange.entrypoints=websecure
         - traefik.http.routers.notifiarr-orange.tls=true
         - traefik.http.routers.notifiarr-orange.tls.certresolver=cloudflare
