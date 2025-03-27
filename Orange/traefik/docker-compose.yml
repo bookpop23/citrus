@@ -54,7 +54,7 @@ services:
         # admin-auth middleware with HTTP Basic auth
 
         # Using the environment variables USERNAME and HASHED_PASSWORD
-        # - traefik.http.middlewares.test-auth.basicauth.usersfile=/run/secrets/user_pass_md5_file
+        - traefik.http.middlewares.test-auth.basicauth.usersfile=/run/secrets/username_password
 
         # traefik-https the actual router using HTTPS
         - traefik.http.routers.traefik.rule=Host(`traefik.$DOMAIN`)
