@@ -1,7 +1,7 @@
 ---
 
 services:
-  server:
+  authentik:
     image: ghcr.io/goauthentik/server:latest
     command: server
     environment:
