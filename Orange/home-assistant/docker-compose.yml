@@ -5,7 +5,7 @@ services:
     ports:
       - target: 9999
         published: 9999
-        protocol: udp
+        #  protocol: udp
         mode: host
       # - target: 8123
       #   published: 8123
