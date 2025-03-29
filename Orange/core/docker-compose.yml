@@ -175,7 +175,7 @@ services:
         - traefik.http.routers.speedtest.rule=Host(`speedtest.$DOMAIN`)
         - traefik.http.routers.speedtest.entrypoints=websecure
         - traefik.http.routers.speedtest.tls=true
-        - traefik.http.routersspeedtest.tls.certresolver=cloudflare
+        - traefik.http.routers.speedtest.tls.certresolver=cloudflare
         - traefik.http.routers.speedtest.service=speedtest
         - traefik.http.services.speedtest.loadbalancer.server.port=80
 
