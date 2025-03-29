@@ -147,6 +147,36 @@ services:
         - traefik.http.routers.uptime-kuma.service=uptime-kuma
         - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
 
+  librespeed:
+    image: lscr.io/linuxserver/librespeed:latest
+    container_name: librespeed
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - FILE__PASSWORD=/run/secrets/password
+      # - CUSTOM_RESULTS=false #optional
+      # - DB_TYPE=sqlite #optional
+      # - DB_NAME=DB_NAME #optional
+      # - DB_HOSTNAME=DB_HOSTNAME #optional
+      # - DB_USERNAME=DB_USERNAME #optional
+      # - DB_PASSWORD=DB_PASSWORD #optional
+      # - DB_PORT=DB_PORT #optional
+      # - IPINFO_APIKEY=ACCESS_TOKEN #optional
+    volumes:
+      - $DOCKERDIR/appdata/librespeed/config:/config
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.speedtest.rule=Host(`speedtest.$DOMAIN`)
+        - traefik.http.routers.speedtest.entrypoints=websecure
+        - traefik.http.routers.speedtest.tls=true
+        - traefik.http.routersspeedtest.tls.certresolver=cloudflare
+        - traefik.http.routers.speedtest.service=speedtest
+        - traefik.http.services.speedtest.loadbalancer.server.port=80
+
 networks:
   traefik-public:
     external: true
