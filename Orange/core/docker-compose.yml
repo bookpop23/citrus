@@ -149,7 +149,9 @@ services:
 
   librespeed:
     image: lscr.io/linuxserver/librespeed:latest
-    container_name: librespeed
+    container_name: speedtest
+    networks:
+      - traefik-public
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
