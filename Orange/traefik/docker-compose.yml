@@ -35,7 +35,7 @@ services:
       - HTPASSWD_FILE=/run/secrets/username_password
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
       placement:
         constraints:
           - node.role == manager
