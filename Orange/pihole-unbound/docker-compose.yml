@@ -141,6 +141,7 @@ services:
       - FULL_SYNC=false
       - CRON="0 * * * *"
       - RUN_GRAVITY=true
+      - CLIENT_SKIP_TLS_VERIFICATION=true
       - SYNC_CONFIG_DNS=true
       - SYNC_CONFIG_NTP=true
       - SYNC_CONFIG_RESOLVER=true
