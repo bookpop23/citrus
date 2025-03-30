@@ -136,8 +136,8 @@ services:
       replicas: 1
     environment:
       - TZ=$TZ
-      - PRIMARY="http://pihole|"
-      - REPLICAS="http://pihole2|"
+      - PRIMARY="http://pihole"
+      - REPLICAS="http://pihole2"
       - FULL_SYNC=false
       - CRON="0 * * * *"
       - RUN_GRAVITY=true
