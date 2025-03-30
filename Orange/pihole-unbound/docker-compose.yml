@@ -48,14 +48,15 @@ services:
       labels:
         - "traefik.enable=true"
       
-
         # TCP Routing for DNS
         - "traefik.tcp.routers.pihole-dns.entrypoints=dns-tcp"
+        - "traefik.tcp.routers.pihole-dns.rule=HostSNI(`*`)"
         - "traefik.tcp.routers.pihole-dns.service=pihole-dns"
         - "traefik.tcp.services.pihole-dns.loadbalancer.server.port=53"  
 
         # UDP Routing for DNS
         - "traefik.udp.routers.pihole-dns.entrypoints=dns-udp"
+        - "traefik.udp.routers.pihole-dns.rule=HostSNI(`*`)"
         - "traefik.udp.routers.pihole-dns.service=pihole-dns"
         - "traefik.udp.services.pihole-dns.loadbalancer.server.port=53"
 
