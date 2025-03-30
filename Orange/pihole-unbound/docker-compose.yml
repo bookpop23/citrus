@@ -71,7 +71,7 @@ services:
       TZ: $TZ
       PIHOLE_UID: $PUID
       PIHOLE_GID: $PGID
-      FTLCONF_webserver_api_password: '23WhiteCn!Star'
+      FTLCONF_webserver_api_password: 'ElmR2314'
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
