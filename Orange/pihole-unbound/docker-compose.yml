@@ -1,6 +1,7 @@
 services:
   pihole:
     image: pihole/pihole:latest
+    hostname: pihole
     # healthcheck:
     #   test: ["CMD", "curl", "-sS", "http://172.22.0.1:8091/admin/index.php"]
     #   interval: 30s
@@ -12,14 +13,14 @@ services:
     networks:
       - traefik-public  # Allow Swarm services to use Pi-hole as DNS
     ports:
-      - target: 53
-        published: 53
-        protocol: tcp
-        mode: host
-      - target: 53
-        published: 53
-        protocol: udp
-        mode: host
+      # - target: 53
+      #   published: 53
+      #   protocol: tcp
+      #   mode: host
+      # - target: 53
+      #   published: 53
+      #   protocol: udp
+      #   mode: host
       - target: 80
         published: 8091
         protocol: tcp
@@ -45,30 +46,33 @@ services:
         constraints:
           - node.labels.pihole == true
       labels:
-        - traefik.enable=true
-        
+        - "traefik.enable=true"
+      
+
+        # TCP Routing for DNS
+        - "traefik.tcp.routers.pihole-dns.entrypoints=dns-tcp"
+        - "traefik.tcp.routers.pihole-dns.service=pihole-dns"
+        - "traefik.tcp.services.pihole-dns.loadbalancer.server.port=53"  
+
+        # UDP Routing for DNS
+        - "traefik.udp.routers.pihole-dns.entrypoints=dns-udp"
+        - "traefik.udp.routers.pihole-dns.service=pihole-dns"
+        - "traefik.udp.services.pihole-dns.loadbalancer.server.port=53"
+
         ## TCP Routers/Services for Admin Interface
-        - traefik.http.routers.pihole.service=pihole       
-        - traefik.http.routers.pihole.rule=Host(`pihole.$DOMAIN`)
-        - traefik.http.routers.pihole.entrypoints=websecure
-        - traefik.http.routers.pihole.tls=true
-        - traefik.http.routers.pihole.tls.certresolver=cloudflare
-        - traefik.http.services.pihole.loadbalancer.server.port=80
+        - traefik.http.routers.pihole-admin.service=pihole-admin       
+        - traefik.http.routers.pihole-admin.rule=Host(`pihole.$DOMAIN`)
+        - traefik.http.routers.pihole-admin.entrypoints=websecure
+        - traefik.http.routers.pihole-admin.tls=true
+        - traefik.http.routers.pihole-admin.tls.certresolver=cloudflare
+        - traefik.http.services.pihole-admin.loadbalancer.server.port=80
 
         # Attach the defined middleware to a router
-        - traefik.http.routers.pihole.middlewares=pihole-redirectregex
+        - traefik.http.routers.pihole-admin.middlewares=pihole-redirectregex
         # Define a middleware regex
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$DOMAIN/$$"
         # Define a replacement
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$DOMAIN/admin/"
-
-        # # Middleware to redirect `/` to `/admin`
-        # - "traefik.http.middlewares.pihole-redirect.redirectregex.regex=^https://(.*)/$$"
-        # - "traefik.http.middlewares.pihole-redirect.redirectregex.replacement=https://$${1}/admin"
-        # - "traefik.http.middlewares.pihole-redirect.redirectregex.permanent=true"
-
-        # # Attach middleware to the router
-        # - "traefik.http.routers.pihole.middlewares=pihole-redirect"
 
   unbound:
     image: sgaduuw/unbound:latest
