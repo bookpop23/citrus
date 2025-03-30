@@ -20,7 +20,7 @@ services:
       TZ: $TZ
       PIHOLE_UID: $PUID
       PIHOLE_GID: $PGID
-      FTLCONF_webserver_api_password: ''
+      FTLCONF_webserver_api_password: '23WhiteCn!Star'
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
@@ -71,7 +71,7 @@ services:
       TZ: $TZ
       PIHOLE_UID: $PUID
       PIHOLE_GID: $PGID
-      FTLCONF_webserver_api_password: ''
+      FTLCONF_webserver_api_password: '23WhiteCn!Star'
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
@@ -136,8 +136,8 @@ services:
       replicas: 1
     environment:
       - TZ=$TZ
-      - PRIMARY="http://pihole"
-      - REPLICAS="http://pihole2"
+      - PRIMARY="http://pihole|23WhiteCn!Star"
+      - REPLICAS="http://pihole2|23WhiteCn!Star"
       - FULL_SYNC=false
       - CRON="0 * * * *"
       - RUN_GRAVITY=true
