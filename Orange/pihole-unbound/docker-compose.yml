@@ -1,15 +1,7 @@
 services:
-  pihole:
+  pihole1:
     image: pihole/pihole:latest
-    hostname: pihole
-    # healthcheck:
-    #   test: ["CMD", "curl", "-sS", "http://172.22.0.1:8091/admin/index.php"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 120s
-    depends_on:
-      - unbound
+    hostname: pihole1
     networks:
       - traefik-public  # Allow Swarm services to use Pi-hole as DNS
     ports:
@@ -29,8 +21,6 @@ services:
       PIHOLE_UID: $PUID
       PIHOLE_GID: $PGID
       FTLCONF_webserver_api_password: ''
-      # FTLCONF_dns_upstreams: 'unbound#53'
-      # FTLCONF_dns_listeningMode: 'all''  
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
@@ -38,27 +28,15 @@ services:
       - SYS_TIME
       - SYS_NICE
     volumes:
-      - $DOCKERDIR/appdata/pihole/pihole-data:/etc/pihole/
-      - $DOCKERDIR/appdata/pihole/pihole-dnsmasq:/etc/dnsmasq.d/
+      - $DOCKERDIR/appdata/pihole1/data:/etc/pihole/
+      - $DOCKERDIR/appdata/pihole1/dnsmasq:/etc/dnsmasq.d/
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.pihole == true
+          - node.labels.pihole == pihole1
       labels:
         - "traefik.enable=true"
-      
-        # # TCP Routing for DNS
-        # - "traefik.tcp.routers.pihole-dns.entrypoints=dns-tcp"
-        # - "traefik.tcp.routers.pihole-dns.rule=HostSNI(`*`)"
-        # - "traefik.tcp.routers.pihole-dns.service=pihole-dns"
-        # - "traefik.tcp.services.pihole-dns.loadbalancer.server.port=53"  
-
-        # # UDP Routing for DNS
-        # - "traefik.udp.routers.pihole-dns.entrypoints=dns-udp"
-        # # - "traefik.udp.routers.pihole-dns.rule=HostSNI(`*`)"
-        # - "traefik.udp.routers.pihole-dns.service=pihole-dns"
-        # - "traefik.udp.services.pihole-dns.loadbalancer.server.port=53"
 
         ## TCP Routers/Services for Admin Interface
         - traefik.http.routers.pihole-admin.service=pihole-admin       
@@ -74,13 +52,64 @@ services:
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://pihole.$DOMAIN/$$"
         # Define a replacement
         - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://pihole.$DOMAIN/admin/"
+  
+  pihole2:
+    image: pihole/pihole:latest
+    hostname: pihole2
+    networks:
+      - traefik-public  # Allow Swarm services to use Pi-hole as DNS
+    ports:
+      - target: 53
+        published: 53
+        protocol: tcp
+        mode: host
+      - target: 53
+        published: 53
+        protocol: udp
+        mode: host
+    environment:
+      TZ: $TZ
+      PIHOLE_UID: $PUID
+      PIHOLE_GID: $PGID
+      FTLCONF_webserver_api_password: ''
+      FTLCONF_dns_dnssec: 'true'
+      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
+    cap_add:
+      - NET_ADMIN
+      - SYS_TIME
+      - SYS_NICE
+    volumes:
+      - $DOCKERDIR/appdata/pihole2/data:/etc/pihole/
+      - $DOCKERDIR/appdata/pihole2/dnsmasq:/etc/dnsmasq.d/
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.pihole == pihole2
+      labels:
+        - "traefik.enable=true"
+
+        ## TCP Routers/Services for Admin Interface
+        - traefik.http.routers.pihole2-admin.service=pihole2-admin       
+        - traefik.http.routers.pihole2-admin.rule=Host(`pihole2.$DOMAIN`)
+        - traefik.http.routers.pihole2-admin.entrypoints=websecure
+        - traefik.http.routers.pihole2-admin.tls=true
+        - traefik.http.routers.pihole2-admin.tls.certresolver=cloudflare
+        - traefik.http.services.pihole2-admin.loadbalancer.server.port=80
+
+        # Attach the defined middleware to a router
+        - traefik.http.routers.pihole2-admin.middlewares=pihole2-redirectregex
+        # Define a middleware regex
+        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex=^https?://pihole2.$DOMAIN/$$"
+        # Define a replacement
+        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement=https://pihole2.$DOMAIN/admin/"
 
   unbound:
     image: sgaduuw/unbound:latest
     networks:
       - traefik-public
     deploy:
-      replicas: 3
+      mode: global
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
@@ -91,6 +120,39 @@ services:
       timeout: 30s
       retries: 3
       start_period: 30s
+
+  nebula-sync:
+    image: lovelaze/nebula-sync:latest
+    networks:
+      - traefik-public
+    volumes:
+      # Mount the local host directories from both instances. Adjust paths as necessary.
+      - $DOCKERDIR/appdata/pihole1/data:/sync/pihole1-data:ro
+      - $DOCKERDIR/appdata/pihole2/data:/sync/pihole2-data:ro
+      # Optionally, include dnsmasq configuration if desired:
+      - $DOCKERDIR/appdata/pihole1/dnsmasq:/sync/pihole1-dnsmasq:ro
+      - $DOCKERDIR/appdata/pihole2/dnsmasq:/sync/pihole2-dnsmasq:ro
+    deploy:
+      replicas: 1
+    environment:
+      - TZ=$TZ
+      - PRIMARY="http://pihole|"
+      - REPLICAS="http://pihole2|"
+      - FULL_SYNC=false
+      - CRON="0 * * * *"
+      - RUN_GRAVITY=true
+      - SYNC_CONFIG_DNS=true
+      - SYNC_CONFIG_NTP=true
+      - SYNC_CONFIG_RESOLVER=true
+      - SYNC_CONFIG_DATABASE=true
+      - SYNC_CONFIG_MISC=true
+      - SYNC_GRAVITY_GROUP=true
+      - SYNC_GRAVITY_AD_LIST=true
+      - SYNC_GRAVITY_AD_LIST_BY_GROUP=true
+      - SYNC_GRAVITY_DOMAIN_LIST=true
+      - SYNC_GRAVITY_DOMAIN_LIST_BY_GROUP=true
+      - SYNC_GRAVITY_CLIENT=true
+      - SYNC_GRAVITY_CLIENT_BY_GROUP=true
 
 networks:
   traefik-public:
