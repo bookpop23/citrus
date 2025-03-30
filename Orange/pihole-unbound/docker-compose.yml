@@ -136,8 +136,8 @@ services:
       replicas: 1
     environment:
       - TZ=$TZ
-      - PRIMARY=http://pihole|ElmR2314
-      - REPLICAS=http://pihole2|ElmR2314
+      - PRIMARY="http://pihole1|ElmR2314"
+      - REPLICAS="http://pihole2|ElmR2314"
       - FULL_SYNC=false
       - CRON="0 * * * *"
       - RUN_GRAVITY=true
