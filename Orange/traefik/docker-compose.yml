@@ -34,11 +34,7 @@ services:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
       - HTPASSWD_FILE=/run/secrets/username_password
     deploy:
-      mode: replicated
-      replicas: 3
-      placement:
-        constraints:
-          - node.role == manager
+      mode: global
       restart_policy:
         condition: on-failure
         delay: 5s
