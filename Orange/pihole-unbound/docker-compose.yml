@@ -56,7 +56,7 @@ services:
 
         # UDP Routing for DNS
         - "traefik.udp.routers.pihole-dns.entrypoints=dns-udp"
-        - "traefik.udp.routers.pihole-dns.rule=HostSNI(`*`)"
+        # - "traefik.udp.routers.pihole-dns.rule=HostSNI(`*`)"
         - "traefik.udp.routers.pihole-dns.service=pihole-dns"
         - "traefik.udp.services.pihole-dns.loadbalancer.server.port=53"
 
