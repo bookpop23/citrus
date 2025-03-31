@@ -92,6 +92,7 @@ services:
   notifiarr:
     image: golift/notifiarr:latest
     container_name: notifiarr
+    hostname: notifiarr-orange
     networks:
      - traefik-public
     environment:
