@@ -111,13 +111,14 @@ services:
     deploy:
       mode: global
       labels:
-        # Enable Traefik TCP router for Unbound
+        # Enable Traefik service for Unbound
         - traefik.enable=true
+
+        # Enable Traefik TCP router for Unbound
         - traefik.tcp.routers.unbound-tcp.service=unbound-tcp
         - traefik.tcp.routers.unbound-tcp.rule=Host(`unbound.$DOMAIN`)
         
         # Enable Traefik UDP service for Unbound
-        - traefik.enable=true
         - traefik.tcp.routers.unbound-udp.service=unbound-udp
         - traefik.tcp.routers.unbound-udp.rule=Host(`unbound.$DOMAIN`)
     volumes:
