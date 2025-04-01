@@ -4,7 +4,7 @@ services:
     image: "mongo:6.0"  
     restart: "on-failure"
     networks:
-      - graylog
+      - bridge_ipv6
     volumes:
       - "/volume1/docker/appdata/graylog/mongodb/data:/data/db"
       - "/volume1/docker/appdata/graylog/mongodb/config:/data/configdb"  
