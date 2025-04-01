@@ -101,7 +101,7 @@ services:
         traefik.http.routers.whoami-catchall-auth.tls.certresolver: "cloudflare"
         traefik.http.routers.whoami-catchall-auth.priority: 15
         traefik.http.routers.whoami-catchall-auth.service: "authentik"
-        traefik.http.services.whoami-catchall-auth.loadbalancer.server.port: 80
+        traefik.http.services.whoami-catchall-auth.loadbalancer.server.port: 9000
 
 networks:
   traefik-public:
