@@ -8,6 +8,9 @@ services:
     volumes:
       - "/volume1/docker/appdata/graylog/mongodb/data:/data/db"
       - "/volume1/docker/appdata/graylog/mongodb/config:/data/configdb"  
+    deploy:
+      mode: replicated 
+      replicas: 1
 
   # For DataNode setup, graylog starts with a preflight UI, this is a change from just using OpenSearch/Elasticsearch.
   # Please take a look at the README at the top of this repo or the regular docs for more info.
@@ -35,7 +38,9 @@ services:
       - bridge_ipv6
     volumes:
       - "/volume1/docker/appdata/graylog/graylog-datanode:/var/lib/graylog-datanode"
-    restart: "on-failure"
+    deploy:
+      mode: replicated 
+      replicas: 1
 
   # Graylog: https://hub.docker.com/r/graylog/graylog-enterprise
   graylog:
@@ -72,7 +77,17 @@ services:
       - bridge_ipv6
     volumes:
       - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/data"
-    restart: "on-failure"
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.graylog.rule=Host(`graylog.$DOMAIN`)
+        - traefik.http.routers.graylog.entrypoints=websecure
+        - traefik.http.routers.graylog.tls=true
+        - traefik.http.routers.graylog.tls.certresolver=cloudflare
+        - traefik.http.routers.graylog.service=graylog
+        - traefik.http.services.graylog.loadbalancer.server.port=9020
 
 networks:
   bridge_ipv6:
