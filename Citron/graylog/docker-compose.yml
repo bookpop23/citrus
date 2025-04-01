@@ -87,7 +87,7 @@ services:
       - bridge_ipv6
     volumes:
       - "$DOCKERDIR/graylog/data:/usr/share/graylog/data/data"
-      - "$DOCKERDIR/graylog/data/plugins:/usr/share/graylog/plugin"
+      - "$DOCKERDIR/graylog/data/plugin:/usr/share/graylog/plugin"
     deploy:
       mode: replicated 
       replicas: 1
