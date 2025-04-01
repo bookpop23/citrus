@@ -81,10 +81,10 @@ services:
       - bridge_ipv6
     volumes:
       - "$DOCKERDIR/graylog/data:/usr/share/graylog/data/data"
-      - "$DOCKERDIR/graylog/data/plugins:/usr/share/graylog/plugins"
+     # - "$DOCKERDIR/graylog/data/plugin:/usr/share/graylog/plugin"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.graylog.rule=Host(`graylog.reidsprite.com`)
+      - traefik.http.routers.graylog.rule=Host(`graylog.$DOMAIN`)
       - traefik.http.routers.graylog.entrypoints=websecure
       - traefik.http.routers.graylog.tls=true
       - traefik.http.routers.graylog.tls.certresolver=cloudflare
