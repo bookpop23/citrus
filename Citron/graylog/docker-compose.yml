@@ -16,7 +16,7 @@ services:
   # Please take a look at the README at the top of this repo or the regular docs for more info.
   # Graylog Data Node: https://hub.docker.com/r/graylog/graylog-datanode
   datanode:
-    image: graylog/graylog-datanode:latest
+    image: graylog/graylog-datanode:6.1.8
     hostname: graylog-datanode
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
@@ -44,7 +44,7 @@ services:
 
   # Graylog: https://hub.docker.com/r/graylog/graylog-enterprise
   graylog:
-    image: graylog/graylog:latest
+    image: graylog/graylog:6.1
     hostname: greylog-server
     entrypoint: "/usr/bin/tini --  /docker-entrypoint.sh"
     environment:
