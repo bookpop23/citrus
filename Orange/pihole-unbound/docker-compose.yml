@@ -109,7 +109,7 @@ services:
     networks:
       - traefik-public
     deploy:
-      modal: global
+      mode: global
       placement:
         constraints:
           - node.labels.unbound == true
