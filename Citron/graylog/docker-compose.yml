@@ -1,8 +1,8 @@
 services:
   # MongoDB: https://hub.docker.com/_/mongo/
   mongodb:
-    image: "mongo:6.0"  
-    restart: "on-failure"
+    image: mongo:latest
+    hostname: mongodb
     networks:
       - bridge_ipv6
     volumes:
@@ -16,8 +16,8 @@ services:
   # Please take a look at the README at the top of this repo or the regular docs for more info.
   # Graylog Data Node: https://hub.docker.com/r/graylog/graylog-datanode
   datanode:
-    image: "graylog/graylog-datanode:latest"
-    hostname: "graylog-datanode"
+    image: graylog/graylog-datanode:latest
+    hostname: graylog-datanode
     environment:
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
@@ -44,13 +44,8 @@ services:
 
   # Graylog: https://hub.docker.com/r/graylog/graylog-enterprise
   graylog:
-    hostname: "greylog-server"
-    image: "graylog/graylog:6.1:latest"
-    depends_on:
-      mongodb:
-        condition: "service_started"
-      datanode:
-        condition: "service_started"
+    image: graylog/graylog:latest
+    hostname: greylog-server
     entrypoint: "/usr/bin/tini --  /docker-entrypoint.sh"
     environment:
       GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/data/node-id"
