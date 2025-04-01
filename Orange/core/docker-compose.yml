@@ -7,7 +7,7 @@ services:
     ports: 
       - target: 6379
         published: 6389
-        protocol: udp
+        protocol: tcp
         mode: ingress
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
