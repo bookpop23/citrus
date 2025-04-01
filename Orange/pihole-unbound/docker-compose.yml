@@ -117,7 +117,7 @@ services:
         # Enable Traefik TCP router for Unbound
         - traefik.tcp.routers.unbound.rule=HostSNI(`*`)
         - traefik.tcp.routers.unbound.entrypoints=unbound-tcp
-        - traefik.tcp.routers.unbound.service=unbound-tcp-svc
+        - traefik.tcp.routers.unbound.service=unbound-svc
         - traefik.tcp.services.unbound-svc.loadbalancer.server.port=53
         
         # Enable Traefik UDP service for Unbound
