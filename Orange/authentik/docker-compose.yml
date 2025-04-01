@@ -86,7 +86,7 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.whoami-catchall.rule: "Host(`auth.reidsprite.com`)"
+        traefik.http.routers.whoami-catchall.rule: "Host(`whoami-catchall.reidsprite.com`)"
         traefik.http.routers.whoami-catchall.middlewares: "authentik@file"
         traefik.http.routers.whoami-catchall.entrypoints: "websecure"
         traefik.http.routers.whoami-catchall.tls: "true"
