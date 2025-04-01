@@ -56,7 +56,6 @@ services:
       GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/data/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
       GRAYLOG_PASSWORD_SECRET: "FbWFPQP3Ef4DZMe5XSoC8KXkOaoLoN6GNyfs6FICHY49q7LAnAipq9P9jdhrYbjCyM3hpdGH2heZZkwU1H1z3xrIuDvlwxck"
-      GRAYLOG_ROOT_PASSWORD_SHA2: "${GRAYLOG_ROOT_PASSWORD_SHA2:?Please configure GRAYLOG_ROOT_PASSWORD_SHA2 in the .env file}"
       GRAYLOG_HTTP_BIND_ADDRESS: "0.0.0.0:9020"
       GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9020/"
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
