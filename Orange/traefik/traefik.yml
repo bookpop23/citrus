@@ -90,10 +90,10 @@ providers:
     watch: true
     exposedbyDefault: false
     network: "traefik-public"
-  # redis:
-  #   endpoints:
-  #     - 'localhost:6389'
-  #   rootkey: 'traefik'
+  redis:
+    endpoints:
+     - 'core_redis:6389'
+    rootkey: 'traefik'
 
   # Enable auto loading of newly created rules by watching a directory
   file:
