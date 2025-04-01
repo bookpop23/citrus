@@ -1,9 +1,10 @@
 ---
 
 services:
-  authentik:
+  server:
     image: ghcr.io/goauthentik/server:latest
     command: server
+    hostname: authentik_server
     environment:
       - TZ=${TZ}
       - PGID=${PGID}
@@ -48,6 +49,7 @@ services:
   worker:
     image: ghcr.io/goauthentik/server:latest
     command: worker
+    hostname: authentik_worker
     deploy:
       replicas: 1
     environment:
@@ -119,10 +121,6 @@ services:
         - traefik.http.routers.whoami-catchall.tls=true
         - traefik.http.routers.whoami-catchall.tls.certresolver=cloudflare
         - traefik.http.services.whoami-catchall.loadbalancer.server.port=80
-        ## HTTP Routers
-        - traefik.http.routers.whoami-catchall.rule=Host(`whoami-catchall.${DOMAIN}`)
-        ## Middlewares
-        - traefik.http.routers.whoami-catchall.middlewares=forwardAuth-authentik@file
 
 networks:
   traefik-public:

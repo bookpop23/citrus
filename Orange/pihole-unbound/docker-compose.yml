@@ -41,7 +41,7 @@ services:
 
         ## TCP Routers/Services for Admin Interface
         - traefik.http.routers.pihole-admin.service=pihole-admin       
-        - traefik.http.routers.pihole-admin.rule=Host(`dns.$DOMAIN`)
+        - traefik.http.routers.pihole-admin.rule=Host(`dns1.$DOMAIN`)
         - traefik.http.routers.pihole-admin.entrypoints=websecure
         - traefik.http.routers.pihole-admin.tls=true
         - traefik.http.routers.pihole-admin.tls.certresolver=cloudflare
@@ -50,9 +50,9 @@ services:
         # Attach the defined middleware to a router
         - traefik.http.routers.pihole-admin.middlewares=pihole-redirectregex
         # Define a middleware regex
-        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://dns.$DOMAIN/$$"
+        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://dns1.$DOMAIN/$$"
         # Define a replacement
-        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://dns.$DOMAIN/admin/"
+        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://dns1.$DOMAIN/admin/"
   
   pihole2:
     image: pihole/pihole:latest
@@ -93,7 +93,7 @@ services:
 
         ## TCP Routers/Services for Admin Interface
         - traefik.http.routers.pihole2-admin.service=pihole2-admin       
-        - traefik.http.routers.pihole2-admin.rule=Host(`dns.$DOMAIN`)
+        - traefik.http.routers.pihole2-admin.rule=Host(`dns2.$DOMAIN`)
         - traefik.http.routers.pihole2-admin.entrypoints=websecure
         - traefik.http.routers.pihole2-admin.tls=true
         - traefik.http.routers.pihole2-admin.tls.certresolver=cloudflare
@@ -102,9 +102,9 @@ services:
         # Attach the defined middleware to a router
         - traefik.http.routers.pihole2-admin.middlewares=pihole2-redirectregex
         # Define a middleware regex
-        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex=^https?://dns.$DOMAIN/$$"
+        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex=^https?://dns2.$DOMAIN/$$"
         # Define a replacement
-        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement=https://dns.$DOMAIN/admin/"
+        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement=https://dns2.$DOMAIN/admin/"
 
   unbound:
     image: sgaduuw/unbound:latest
@@ -131,7 +131,7 @@ services:
         - traefik.udp.routers.unbound.service=unbound-svc        
         - traefik.udp.services.unbound-svc.loadbalancer.server.port=5353
     volumes:
-      - $DOCKERDIR/appdata/unbound:/opt/unbound/etc/unbound/:rw
+      - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
       - UNBOUND_CACHEDB_BACKEND=redis
     healthcheck:

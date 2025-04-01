@@ -48,7 +48,7 @@ services:
             ANSIBLE_HOST_KEY_CHECKING: False
         labels:
           - traefik.enable=true
-          - traefik.http.routers.semaphore.rule=Host(`semaphore.DOMAIN`)
+          - traefik.http.routers.semaphore.rule=Host(`semaphore.$DOMAIN`)
           - traefik.http.routers.semaphore.entrypoints=websecure
           - traefik.http.routers.semaphore.tls=true
           - traefik.http.routers.semaphore.tls.certresolver=cloudflare
