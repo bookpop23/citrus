@@ -40,11 +40,8 @@ services:
         - "traefik.http.routers.authentik.entrypoints=websecure"
         - "traefik.http.routers.authentik.rule=Host(`auth.$DOMAIN`)"
         - "traefik.http.routers.authentik.service=authentik"
-        - "traefik.http.routers.authentik.priority=1"
-        - "traefik.http.routers.authentik-output.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)"
         - "traefik.http.routers.authentik.tls=true"
         - "traefik.http.routers.authentik.tls.certresolver=cloudflare"
-        #- "traefik.http.services.authentik.loadbalancer.server.url=http://authentik_server:9000/outpost.goauthentik.io"
         - "traefik.http.services.authentik.loadbalancer.server.port=9000"
   worker:
     image: ghcr.io/goauthentik/server:latest
@@ -74,33 +71,6 @@ services:
       - $DOCKERDIR/appdata/authentik/certs:/certs
       - $DOCKERDIR/appdata/authentik/custom-templates:/templates
 
-  whoami-individual:
-    image: traefik/whoami:latest
-    container_name: whoami-individual
-    security_opt:
-      - no-new-privileges:true
-    depends_on:
-      - server
-      - worker
-    networks:
-      - traefik-public
-    environment:
-      - TZ=${TZ}
-      - PGID=${PGID}
-      - PUID=${PUID}
-    deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.http.routers.whoami-individual.service=whoami-individual
-        - traefik.http.routers.whoami-individual.entrypoints=websecure
-        - traefik.http.routers.whoami-individual.tls=true
-        - traefik.http.routers.whoami-individual.tls.certresolver=cloudflare
-        - traefik.http.services.whoami-individual.loadbalancer.server.port=80
-        ## HTTP Routers
-        - traefik.http.routers.whoami-individual.rule=Host(`whoami-individual.${DOMAIN}`)
-        ## Middlewares
-        - traefik.http.routers.whoami-individual.middlewares=forwardAuth-authentik@file
-
   whoami-catchall:
     image: traefik/whoami:latest
     container_name: whoami-catchall
@@ -116,10 +86,6 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.whoami-catchall.service=whoami-catchall
-        - traefik.http.routers.whoami-catchall.entrypoints=websecure
-        - traefik.http.routers.whoami-catchall.tls=true
-        - traefik.http.routers.whoami-catchall.tls.certresolver=cloudflare
         - traefik.http.services.whoami-catchall.loadbalancer.server.port=80
 
 networks:
