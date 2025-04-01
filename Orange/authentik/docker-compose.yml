@@ -87,7 +87,7 @@ services:
       labels:
         traefik.enable: "true"
         traefik.http.routers.whoami-catchall.rule: "Host(`auth.reidsprite.com`)"
-        traefik.http.routers.whoami-catchall.middlewares: "authentik"
+        traefik.http.routers.whoami-catchall.middlewares: "authentik@file"
         traefik.http.routers.whoami-catchall.priority: 10
         traefik.http.routers.whoami-catchall.service: "whoami-catchall"
         traefik.http.services.whoami-catchall.loadbalancer.server.port: 80
