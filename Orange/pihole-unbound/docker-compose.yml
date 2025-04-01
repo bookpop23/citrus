@@ -121,7 +121,7 @@ services:
         - traefik.tcp.services.unbound-svc.loadbalancer.server.port=53
         
         # Enable Traefik UDP service for Unbound
-        - traefik.udp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
+        # - traefik.udp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
         - traefik.udp.routers.unbound.service=unbound-svc        
         - traefik.udp.routers.unbound.entrypoint=unbound-udp
         - traefik.udp.services.unbound-svc.loadbalancer.server.port=53
