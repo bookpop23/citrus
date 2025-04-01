@@ -95,7 +95,7 @@ services:
         traefik.http.routers.whoami-catchall-auth.rule: "Host(`whoami-catchall.reidsprite.com`) && PathPrefix(`/outpost.goauthentik.io/`)"
         traefik.http.routers.whoami-catchall-auth.priority: 15
         traefik.http.routers.whoami-catchall-auth.service: "authentik"
-        traefik.http.services.whoami-catchall-auth.loadbalancer.server.port: 9000
+        traefik.http.services.whoami-catchall-auth.loadbalancer.server.port: 80
 
 networks:
   traefik-public:
