@@ -29,7 +29,7 @@ services:
       - SYS_NICE
     volumes:
       - $DOCKERDIR/appdata/pihole1/data:/etc/pihole/
-      - $DOCKERDIR/appdata/pihole1/logs:/var/log
+      - $DOCKERDIR/appdata/pihole1/data/logs:/var/log/
       - $DOCKERDIR/appdata/pihole1/dnsmasq:/etc/dnsmasq.d/
     deploy:
       replicas: 1
@@ -81,7 +81,7 @@ services:
       - SYS_NICE
     volumes:
       - $DOCKERDIR/appdata/pihole2/data:/etc/pihole/
-      - $DOCKERDIR/appdata/pihole2/logs:/var/log
+      - $DOCKERDIR/appdata/pihole2/data/logs:/var/log/
       - $DOCKERDIR/appdata/pihole2/dnsmasq:/etc/dnsmasq.d/
     deploy:
       replicas: 1
