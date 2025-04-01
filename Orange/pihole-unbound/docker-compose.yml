@@ -113,12 +113,11 @@ services:
       labels:
         # Enable Traefik for the unbound service
         - traefik.enable=true
-        - traefik.http.routers.unbound.service=unbound      
-        - traefik.http.routers.unbound.rule=Host(`unbound.$DOMAIN`)
-        - traefik.http.routers.unbound.entrypoints=websecure
-        - traefik.http.routers.unbound.tls=true
-        - traefik.http.routers.unbound.tls.certresolver=cloudflare
-        - traefik.http.services.unbound.loadbalancer.server.port=53
+        - traefik.tcp.routers.unbound.service=unbound      
+        - traefik.tcp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
+        - traefik.tcp.routers.unbound.entrypoints=websecure
+        - traefik.tcp.routers.unbound.tls=true
+        - traefik.tcp.routers.unbound.tls.certresolver=cloudflare
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
