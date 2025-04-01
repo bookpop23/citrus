@@ -54,7 +54,7 @@ services:
       #TZ: America/New_York
       #PUID: 1026
       #PGID: 100
-      GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/config/node-id"
+      GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/data/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
       GRAYLOG_PASSWORD_SECRET: "FbWFPQP3Ef4DZMe5XSoC8KXkOaoLoN6GNyfs6FICHY49q7LAnAipq9P9jdhrYbjCyM3hpdGH2heZZkwU1H1z3xrIuDvlwxck"
       GRAYLOG_ROOT_PASSWORD_SHA2: "1aeaca61a2c6fcd7d6e4c58e3d616f25a3094cced462a574099c00937f988030"
@@ -77,7 +77,7 @@ services:
     networks:
       - bridge_ipv6
     volumes:
-      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/config"
+      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/data"
     deploy:
       mode: replicated 
       replicas: 1
