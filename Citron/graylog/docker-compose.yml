@@ -19,9 +19,9 @@ services:
     image: graylog/graylog-datanode:6.1.8
     hostname: graylog-datanode
     environment:
-      TZ=America/New_York
-      PUID=1026
-      PGID=100
+      TZ: America/New_York
+      PUID: 1026
+      PGID: 100
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
       GRAYLOG_DATANODE_PASSWORD_SECRET: "FbWFPQP3Ef4DZMe5XSoC8KXkOaoLoN6GNyfs6FICHY49q7LAnAipq9P9jdhrYbjCyM3hpdGH2heZZkwU1H1z3xrIuDvlwxck"
@@ -51,9 +51,9 @@ services:
     hostname: greylog-server
     entrypoint: "/usr/bin/tini --  /docker-entrypoint.sh"
     environment:
-      TZ=America/New_York
-      PUID=1026
-      PGID=100
+      TZ: America/New_York
+      PUID: 1026
+      PGID: 100
       GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/data/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
       GRAYLOG_PASSWORD_SECRET: "FbWFPQP3Ef4DZMe5XSoC8KXkOaoLoN6GNyfs6FICHY49q7LAnAipq9P9jdhrYbjCyM3hpdGH2heZZkwU1H1z3xrIuDvlwxck"
