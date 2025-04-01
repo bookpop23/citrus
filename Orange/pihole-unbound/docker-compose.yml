@@ -117,10 +117,12 @@ services:
         # Enable Traefik TCP router for Unbound
         - traefik.tcp.routers.unbound-tcp.service=unbound-tcp
         - traefik.tcp.routers.unbound-tcp.rule=Host(`unbound.$DOMAIN`)
+        - traefik.tcp.services.runbound-tcp.loadbalancer.server.port=53
         
         # Enable Traefik UDP service for Unbound
         - traefik.tcp.routers.unbound-udp.service=unbound-udp
         - traefik.tcp.routers.unbound-udp.rule=Host(`unbound.$DOMAIN`)
+        - traefik.tcp.services.runbound-udp.loadbalancer.server.port=53
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
