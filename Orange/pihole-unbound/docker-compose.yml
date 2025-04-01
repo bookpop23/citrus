@@ -130,9 +130,8 @@ services:
         - traefik.udp.routers.unbound.entrypoints=unbound-udp
         - traefik.udp.routers.unbound.service=unbound-svc        
         - traefik.udp.services.unbound-svc.loadbalancer.server.port=5353
-
     volumes:
-      - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
+      - $DOCKERDIR/appdata/unbound:/opt/unbound/etc/unbound/:rw
     environment:
       - UNBOUND_CACHEDB_BACKEND=redis
     healthcheck:
