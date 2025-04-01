@@ -19,9 +19,9 @@ services:
     image: graylog/graylog-datanode:6.1.8
     hostname: graylog-datanode
     environment:
-      TZ: America/New_York
-      PUID: 1026
-      PGID: 100
+      #TZ: America/New_York
+      #PUID: 1026
+      #PGID: 100
       GRAYLOG_DATANODE_NODE_ID_FILE: "/var/lib/graylog-datanode/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
       GRAYLOG_DATANODE_PASSWORD_SECRET: "FbWFPQP3Ef4DZMe5XSoC8KXkOaoLoN6GNyfs6FICHY49q7LAnAipq9P9jdhrYbjCyM3hpdGH2heZZkwU1H1z3xrIuDvlwxck"
@@ -48,15 +48,16 @@ services:
   # Graylog: https://hub.docker.com/r/graylog/graylog-enterprise
   graylog:
     image: graylog/graylog:6.1
-    hostname: greylog-server
+    hostname: graylog-server
     entrypoint: "/usr/bin/tini --  /docker-entrypoint.sh"
     environment:
-      TZ: America/New_York
-      PUID: 1026
-      PGID: 100
-      GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/data/node-id"
+      #TZ: America/New_York
+      #PUID: 1026
+      #PGID: 100
+      GRAYLOG_NODE_ID_FILE: "/usr/share/graylog/data/config/node-id"
       # GRAYLOG_DATANODE_PASSWORD_SECRET and GRAYLOG_PASSWORD_SECRET MUST be the same value
       GRAYLOG_PASSWORD_SECRET: "FbWFPQP3Ef4DZMe5XSoC8KXkOaoLoN6GNyfs6FICHY49q7LAnAipq9P9jdhrYbjCyM3hpdGH2heZZkwU1H1z3xrIuDvlwxck"
+      GRAYLOG_ROOT_PASSWORD_SHA2: "1aeaca61a2c6fcd7d6e4c58e3d616f25a3094cced462a574099c00937f988030"
       GRAYLOG_HTTP_BIND_ADDRESS: "0.0.0.0:9020"
       GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9020/"
       GRAYLOG_MONGODB_URI: "mongodb://mongodb:27017/graylog"
@@ -76,7 +77,7 @@ services:
     networks:
       - bridge_ipv6
     volumes:
-      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/data"
+      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/config"
     deploy:
       mode: replicated 
       replicas: 1
