@@ -111,13 +111,15 @@ services:
     deploy:
       mode: global
       labels:
-        # Enable Traefik for the unbound service
+        # Enable Traefik TCP router for Unbound
         - traefik.enable=true
-        - traefik.tcp.routers.unbound.service=unbound      
-        - traefik.tcp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
-        - traefik.tcp.routers.unbound.entrypoints=websecure
-        - traefik.tcp.routers.unbound.tls=true
-        - traefik.tcp.routers.unbound.tls.certresolver=cloudflare
+        - traefik.tcp.routers.unbound-tcp.service=unbound-tcp
+        - traefik.tcp.routers.unbound-tcp.rule=Host(`unbound.$DOMAIN`)
+        
+        # Enable Traefik UDP service for Unbound
+        - traefik.enable=true
+        - traefik.tcp.routers.unbound-udp.service=unbound-udp
+        - traefik.tcp.routers.unbound-udp.rule=Host(`unbound.$DOMAIN`)
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
