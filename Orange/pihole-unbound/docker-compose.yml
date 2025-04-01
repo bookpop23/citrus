@@ -115,26 +115,28 @@ services:
         - traefik.enable=true
 
         # Enable Traefik TCP router for Unbound
-        - traefik.tcp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
+        - traefik.tcp.routers.unbound.rule=HostSNI(`unbound.$DOMAIN`)
         - traefik.tcp.routers.unbound.service=unbound-svc        
         - traefik.tcp.routers.unbound.entrypoint=unbound-tcp
-        - traefik.tcp.services.unbound-scv.loadbalancer.server.port=53
+        - traefik.tcp.services.unbound-svc.loadbalancer.server.port=53
         
         # Enable Traefik UDP service for Unbound
-        - traefik.udp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
+        - traefik.udp.routers.unbound.rule=HostSNI(`unbound.$DOMAIN`)
         - traefik.udp.routers.unbound.service=unbound-svc        
         - traefik.udp.routers.unbound.entrypoint=unbound-udp
-        - traefik.udp.services.unbound-scv.loadbalancer.server.port=53
+        - traefik.udp.services.unbound-svc.loadbalancer.server.port=53
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
-      - UNBOUND_CACHEDB_BACKEND=redis
+      # Specifies the backend for Unbound's cache database. 
+      # Using Redis allows Unbound to store and retrieve DNS cache data efficiently.
+      test: ["CMD", "dig", "@127.0.0.1", "dnssec.works"]
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
       interval: 30s
       timeout: 30s
       retries: 3
-      start_period: 30s
+      start_period: 60s
 
   nebula-sync:
     image: lovelaze/nebula-sync:latest
