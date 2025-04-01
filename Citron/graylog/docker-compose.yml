@@ -93,7 +93,7 @@ services:
       replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.graylog.rule=Host(`graylog.$DOMAIN`)
+        - traefik.http.routers.graylog.rule=Host(`graylog.reidsprite.com`)
         - traefik.http.routers.graylog.entrypoints=websecure
         - traefik.http.routers.graylog.tls=true
         - traefik.http.routers.graylog.tls.certresolver=cloudflare
