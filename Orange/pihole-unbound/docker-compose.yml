@@ -118,7 +118,7 @@ services:
         - traefik.http.routers.unbound.entrypoints=websecure
         - traefik.http.routers.unbound.tls=true
         - traefik.http.routers.unbound.tls.certresolver=cloudflare
-        - traefik.http.services.loadbalancer.server.port=53
+        - traefik.http.services.unbound.loadbalancer.server.port=53
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
