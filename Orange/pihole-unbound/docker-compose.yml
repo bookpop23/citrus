@@ -115,22 +115,20 @@ services:
         - traefik.enable=true
 
         # Enable Traefik TCP router for Unbound
-        - traefik.tcp.routers.unbound.rule=HostSNI(`unbound.$DOMAIN`)
+        - traefik.tcp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
         - traefik.tcp.routers.unbound.service=unbound-svc        
         - traefik.tcp.routers.unbound.entrypoint=unbound-tcp
         - traefik.tcp.services.unbound-svc.loadbalancer.server.port=53
         
         # Enable Traefik UDP service for Unbound
-        # - traefik.udp.routers.unbound.rule=HostSNI(`unbound.$DOMAIN`)
+        - traefik.udp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
         - traefik.udp.routers.unbound.service=unbound-svc        
         - traefik.udp.routers.unbound.entrypoint=unbound-udp
         - traefik.udp.services.unbound-svc.loadbalancer.server.port=53
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
-      # Specifies the backend for Unbound's cache database. 
-      # Using Redis allows Unbound to store and retrieve DNS cache data efficiently.
-      test: ["CMD", "dig", "@127.0.0.1", "dnssec.works"]
+      - UNBOUND_CACHEDB_BACKEND=redis
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
       interval: 30s
