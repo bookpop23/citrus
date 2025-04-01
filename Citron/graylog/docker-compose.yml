@@ -77,8 +77,7 @@ services:
     networks:
       - bridge_ipv6
     volumes:
-      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data"
-      - "/volume1/docker/appdata/graylog/journal:/usr/share/graylog/journal"
+      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/data"
     deploy:
       mode: replicated 
       replicas: 1
