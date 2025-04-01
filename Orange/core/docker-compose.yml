@@ -5,7 +5,9 @@ services:
     networks:
       - traefik-public
     ports: 
-      - "6389:6379"
+      - target: 6379
+        published: 6389
+        protocol: udp
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       start_period: 60s
