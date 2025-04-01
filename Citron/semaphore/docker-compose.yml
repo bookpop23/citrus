@@ -40,7 +40,7 @@ services:
             SEMAPHORE_OIDC_PROVIDER_URL: "https://auth.reidsprite.com/application/o/semaphore-semaphore/"
             SEMAPHORE_OIDC_CLIENT_ID: "sn10N2nf52qoWzlV7KsxWZUXMVAObVTHgzDdKSpl"
             SEMAPHORE_OIDC_CLIENT_SECRET: "hcxgKQJFUDjkKtMdAjS1UD9erTfdFcUVa0B8Fh4Ry8dhZKveB0AnYurfRsxsRhBCCuH8p2PerJOffMALvCWvyi4Kn69FNjlAlVLPVMcAMHP2uebknkMRnrric8DQdgWa"
-            SEMAPHORE_OIDC_REDIRECT_URL: "https://semaphore.citrus.reidsprite.com/api/auth/oidc/authentik/redirect/"
+            SEMAPHORE_OIDC_REDIRECT_URL: "https://semaphore.reidsprite.com/api/auth/oidc/authentik/redirect/"
             SEMAPHORE_OIDC_SCOPES: "openid profile email"
             SEMAPHORE_OIDC_USERNAME_CLAIM: "username"
             SEMAPHORE_OIDC_NAME_CLAIM: "name"
@@ -48,7 +48,7 @@ services:
             ANSIBLE_HOST_KEY_CHECKING: False
         labels:
           - traefik.enable=true
-          - traefik.http.routers.semaphore.rule=Host(`semaphore.$HOSTNAME.$DOMAIN`)
+          - traefik.http.routers.semaphore.rule=Host(`semaphore.DOMAIN`)
           - traefik.http.routers.semaphore.entrypoints=websecure
           - traefik.http.routers.semaphore.tls=true
           - traefik.http.routers.semaphore.tls.certresolver=cloudflare
