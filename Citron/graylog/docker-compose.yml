@@ -2,6 +2,7 @@ services:
   # MongoDB: https://hub.docker.com/_/mongo/
   mongodb:
     image: mongo:latest
+    restart: "on-failure"
     hostname: mongodb
     networks:
       - bridge_ipv6
@@ -17,6 +18,7 @@ services:
   # Graylog Data Node: https://hub.docker.com/r/graylog/graylog-datanode
   datanode:
     image: graylog/graylog-datanode:6.1.8
+    restart: "on-failure"
     hostname: graylog-datanode
     environment:
       #TZ: America/New_York
@@ -48,8 +50,14 @@ services:
   # Graylog: https://hub.docker.com/r/graylog/graylog
   graylog:
     image: graylog/graylog:6.1
+    restart: "on-failure"
     hostname: graylog-server
     entrypoint: "/usr/bin/tini --  /docker-entrypoint.sh"
+    depends_on:
+      mongodb:
+        condition: "service_started"
+      datanode:
+        condition: "service_started"
     environment:
       #TZ: America/New_York
       #PUID: 1026
