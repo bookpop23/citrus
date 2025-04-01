@@ -115,16 +115,17 @@ services:
         - traefik.enable=true
 
         # Enable Traefik TCP router for Unbound
-        - traefik.tcp.routers.unbound-tcp.rule=Host(`unbound.$DOMAIN`)
-        - traefik.tcp.routers.unbound-tcp.service=unbound-tcp-svc        
-        - traefik.tcp.routers.unbound-tcp.entrypoint=unbound-tcp
-        - traefik.tcp.services.unbound-tcp-svc.loadbalancer.server.port=53
+        - traefik.tcp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
+        - traefik.tcp.routers.unbound.entrypoints=unbound-tcp
+        - traefik.tcp.routers.unbound.service=unbound-tcp-svc
+        - traefik.tcp.services.unbound-svc.loadbalancer.server.port=53
         
         # Enable Traefik UDP service for Unbound
-        - traefik.udp.routers.unbound-udp.rule=Host(`unbound.$DOMAIN`)
-        - traefik.udp.routers.unbound.udp.service=unbound-udp-svc        
-        - traefik.udp.routers.unbound-udp.entrypoint=unbound-udp
-        - traefik.udp.services.unbound-udp-svc.loadbalancer.server.port=53
+        - traefik.udp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
+        - traefik.udp.routers.unbound.entrypoints=unbound-udp
+        - traefik.udp.routers.unbound.service=unbound-svc        
+        - traefik.udp.services.unbound-svc.loadbalancer.server.port=53
+
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
