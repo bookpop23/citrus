@@ -110,6 +110,8 @@ services:
       - traefik-public
     deploy:
       mode: global
+      labels:
+        # Enable Traefik for the unbound service
         - traefik.enable=true
         - traefik.http.routers.unbound.service=unbound      
         - traefik.http.routers.unbound.rule=Host(`unbound.$DOMAIN`)
