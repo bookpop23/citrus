@@ -7,8 +7,8 @@ services:
     networks:
       - bridge_ipv6
     volumes:
-      - "/volume1/docker/appdata/graylog/mongodb/data:/data/db"
-      - "/volume1/docker/appdata/graylog/mongodb/config:/data/configdb"  
+      - "$DOCKERDIR/graylog/mongodb/data:/data/db"
+      - "$DOCKERDIR/graylog/mongodb/config:/data/configdb"  
     deploy:
       mode: replicated 
       replicas: 1
@@ -43,7 +43,7 @@ services:
     networks:
       - bridge_ipv6
     volumes:
-      - "/volume1/docker/appdata/graylog/graylog-datanode:/var/lib/graylog-datanode"
+      - "$DOCKERDIR/graylog/graylog-datanode:/var/lib/graylog-datanode"
     deploy:
       mode: replicated 
       replicas: 1
@@ -86,7 +86,7 @@ services:
     networks:
       - bridge_ipv6
     volumes:
-      - "/volume1/docker/appdata/graylog/data:/usr/share/graylog/data/data"
+      - "$DOCKERDIR/graylog/data:/usr/share/graylog/data/data"
     deploy:
       mode: replicated 
       replicas: 1
