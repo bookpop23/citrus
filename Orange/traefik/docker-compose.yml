@@ -27,12 +27,13 @@ services:
     #   retries: 5
     #   timeout: 3s
     secrets:
-      - traefik_basic_auth_credentials
+      #- traefik_basic_auth_credentials
       - cf_dns_api_token
     environment:
       TZ: "$TZ"
       CF_DNS_API_TOKEN_FILE: "/run/secrets/cf_dns_api_token"
-      HTPASSWD_FILE: "/run/secrets/traefik_basic_auth_credentials"
+      # HTPASSWD_FILE: "/run/secrets/traefik_basic_auth_credentials"
+      HTPASSWD_FILE: "/secrets/traefik_basic_auth_credentials"
     deploy:
       replicas: 1
       restart_policy:
@@ -50,7 +51,8 @@ services:
         # admin-auth middleware with HTTP Basic auth
 
         # Using the environment variables USERNAME and HASHED_PASSWORD
-        traefik.http.middlewares.auth.basicauth.usersfile: "/run/secrets/traefik_basic_auth_credentials"
+        # traefik.http.middlewares.auth.basicauth.usersfile: "/run/secrets/traefik_basic_auth_credentials"
+        traefik.http.middlewares.auth.basicauth.usersfile: "/secrets/traefik_basic_auth_credentials"
 
         # traefik-https the actual router using HTTPS
         traefik.http.routers.traefik.rule: "Host(`traefik.$DOMAIN`)"
@@ -69,11 +71,12 @@ services:
       - "$DOCKERDIR/appdata/traefik/config/traefik.yml:/etc/traefik/traefik.yml"  # traefik.yaml
       - "$DOCKERDIR/appdata/traefik/certs:/certs"                                 # acme.json defined in traefik.yaml
       - "$DOCKERDIR/appdata/traefik/rules:/rules"                                 # Dynamic File Provider directory
-      - "$DOCKERDIR/appdata/traefik/logs:/logs"                                   # Logs       
+      - "$DOCKERDIR/appdata/traefik/logs:/logs"                                   # Logs
+      - "$DOCKERDIR/secrets:/secrets"                                             # Secrets directory
 
 secrets:
-  traefik_basic_auth_credentials:
-    external: true
+  # traefik_basic_auth_credentials:
+  #   external: true
   cf_dns_api_token:
     external: true
 
