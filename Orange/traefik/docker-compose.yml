@@ -72,7 +72,7 @@ services:
       - "$DOCKERDIR/appdata/traefik/logs:/logs"                                   # Logs       
 
 secrets:
-  username_password:
+  traefik_basic_auth_credentials:
     external: true
   cf_dns_api_token:
     external: true
