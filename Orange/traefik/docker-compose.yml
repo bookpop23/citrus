@@ -34,7 +34,7 @@ services:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
       - HTPASSWD_FILE=/run/secrets/username_password
     deploy:
-      mode: global
+      replicas: 1
       restart_policy:
         condition: on-failure
         delay: 5s
