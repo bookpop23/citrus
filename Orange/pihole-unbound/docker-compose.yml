@@ -37,19 +37,19 @@ services:
         constraints:
           - node.labels.pihole == pihole1
       labels:
-        - "traefik.enable=true"
+        traefik.enable: true
 
         ## TCP Routers/Services for Admin Interface
-        - traefik.http.routers.pihole-admin.service=pihole-admin       
-        - traefik.http.routers.pihole-admin.rule=Host(`dns1.$DOMAIN`)
-        - traefik.http.services.pihole-admin.loadbalancer.server.port=80
+        traefik.http.routers.pihole1-admin.service: 'pihole1-admin'
+        traefik.http.routers.pihole1-admin.rule: 'Host(`dns1.$DOMAIN`)'
+        traefik.http.services.pihole1-admin.loadbalancer.server.port: 80
 
         # Attach the defined middleware to a router
-        - traefik.http.routers.pihole-admin.middlewares=pihole-redirectregex
+        traefik.http.routers.pihole-admin.middlewares: 'pihole-redirectregex'
         # Define a middleware regex
-        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.regex=^https?://dns1.$DOMAIN/$$"
+        traefik.http.middlewares.pihole-redirectregex.redirectregex.regex: '^https?://dns1.$DOMAIN/$$'
         # Define a replacement
-        - "traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement=https://dns1.$DOMAIN/admin/"
+        traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement: 'https://dns1.$DOMAIN/admin/''
   
   pihole2:
     image: pihole/pihole:latest
@@ -86,19 +86,19 @@ services:
         constraints:
           - node.labels.pihole == pihole2
       labels:
-        - "traefik.enable=true"
+        traefik.enable: true
 
         ## TCP Routers/Services for Admin Interface
-        - traefik.http.routers.pihole2-admin.service=pihole2-admin       
-        - traefik.http.routers.pihole2-admin.rule=Host(`dns2.$DOMAIN`)
-        - traefik.http.services.pihole2-admin.loadbalancer.server.port=80
+        traefik.http.routers.pihole2-admin.service: 'pihole2-admin'
+        traefik.http.routers.pihole2-admin.rule: 'Host(`dns2.$DOMAIN`)'
+        traefik.http.services.pihole2-admin.loadbalancer.server.port: 80
 
         # Attach the defined middleware to a router
-        - traefik.http.routers.pihole2-admin.middlewares=pihole2-redirectregex
+        traefik.http.routers.pihole2-admin.middlewares: 'pihole2-redirectregex'
         # Define a middleware regex
-        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex=^https?://dns2.$DOMAIN/$$"
+        traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex: '^https?://dns2.$DOMAIN/$$'
         # Define a replacement
-        - "traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement=https://dns2.$DOMAIN/admin/"
+        traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement: 'https://dns2.$DOMAIN/admin/'
 
   unbound:
     image: sgaduuw/unbound:latest
@@ -111,19 +111,18 @@ services:
           - node.labels.unbound == true
       labels:
         # Enable Traefik service for Unbound
-        - traefik.enable=true
+        traefik.enable: true
 
         # Enable Traefik TCP router for Unbound
-        - traefik.tcp.routers.unbound.rule=HostSNI(`*`)
-        - traefik.tcp.routers.unbound.entrypoints=unbound-tcp
-        - traefik.tcp.routers.unbound.service=unbound-svc
-        - traefik.tcp.services.unbound-svc.loadbalancer.server.port=5353
+        traefik.tcp.routers.unbound.rule: 'HostSNI(`*`)'
+        traefik.tcp.routers.unbound.entrypoints: 'unbound-tcp'
+        traefik.tcp.routers.unbound.service: 'unbound-svc'
+        traefik.tcp.services.unbound-svc.loadbalancer.server.port: 5353
         
         # Enable Traefik UDP service for Unbound
-        # - traefik.udp.routers.unbound.rule=Host(`unbound.$DOMAIN`)
-        - traefik.udp.routers.unbound.entrypoints=unbound-udp
-        - traefik.udp.routers.unbound.service=unbound-svc        
-        - traefik.udp.services.unbound-svc.loadbalancer.server.port=5353
+        traefik.udp.routers.unbound.entrypoints: 'unbound-udp'
+        traefik.udp.routers.unbound.service: 'unbound-svc'
+        traefik.udp.services.unbound-svc.loadbalancer.server.port: 5353
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
@@ -149,25 +148,25 @@ services:
     deploy:
       replicas: 1
     environment:
-      - TZ=$TZ
-      - PRIMARY=http://dns1|ElmR2314
-      - REPLICAS=http://dns2|ElmR2314
-      - FULL_SYNC=false
-      - CRON=0 * * * *
-      - RUN_GRAVITY=true
-      - CLIENT_SKIP_TLS_VERIFICATION=true
-      - SYNC_CONFIG_DNS=true
-      - SYNC_CONFIG_NTP=true
-      - SYNC_CONFIG_RESOLVER=true
-      - SYNC_CONFIG_DATABASE=true
-      - SYNC_CONFIG_MISC=true
-      - SYNC_GRAVITY_GROUP=true
-      - SYNC_GRAVITY_AD_LIST=true
-      - SYNC_GRAVITY_AD_LIST_BY_GROUP=true
-      - SYNC_GRAVITY_DOMAIN_LIST=true
-      - SYNC_GRAVITY_DOMAIN_LIST_BY_GROUP=true
-      - SYNC_GRAVITY_CLIENT=true
-      - SYNC_GRAVITY_CLIENT_BY_GROUP=true
+      TZ: $TZ
+      PRIMARY: 'http://dns1|ElmR2314'
+      REPLICAS: 'http://dns2|ElmR2314'
+      FULL_SYNC: false
+      CRON: 0 * * *
+      RUN_GRAVITY: true
+      CLIENT_SKIP_TLS_VERIFICATION: true
+      SYNC_CONFIG_DNS: true
+      SYNC_CONFIG_NTP: true
+      SYNC_CONFIG_RESOLVER: true
+      SYNC_CONFIG_DATABASE: true
+      SYNC_CONFIG_MISC: true
+      SYNC_GRAVITY_GROUP: true
+      SYNC_GRAVITY_AD_LIST: true
+      SYNC_GRAVITY_AD_LIST_BY_GROUP: true
+      SYNC_GRAVITY_DOMAIN_LIST: true
+      SYNC_GRAVITY_DOMAIN_LIST_BY_GROUP: true
+      SYNC_GRAVITY_CLIENT: true
+      SYNC_GRAVITY_CLIENT_BY_GROUP: true
 
 networks:
   traefik-public:
