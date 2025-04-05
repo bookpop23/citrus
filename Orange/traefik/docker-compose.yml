@@ -72,7 +72,8 @@ services:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "$DOCKERDIR/appdata/traefik/config/traefik.yml:/etc/traefik/traefik.yml"  # traefik.yaml
-      - "$DOCKERDIR/appdata/traefik/certs:/certs"                                 # acme.json defined in traefik.yaml
+      - "$DOCKERDIR/appdata/traefik/certs:/certs"                                 # acme.json (shared)
+      - "/home/reid.sprite/docker_volumes/traefik:/unshared"            # acme.json (unshared)
       - "$DOCKERDIR/appdata/traefik/rules:/rules"                                 # Dynamic File Provider directory
       - "$DOCKERDIR/appdata/traefik/logs:/logs"                                   # Logs
 
