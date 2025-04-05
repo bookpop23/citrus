@@ -49,7 +49,7 @@ services:
         # Define a middleware regex
         traefik.http.middlewares.pihole-redirectregex.redirectregex.regex: '^https?://dns1.$DOMAIN/$$'
         # Define a replacement
-        traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement: 'https://dns1.$DOMAIN/admin/''
+        traefik.http.middlewares.pihole-redirectregex.redirectregex.replacement: 'https://dns1.$DOMAIN/admin/'
   
   pihole2:
     image: pihole/pihole:latest
