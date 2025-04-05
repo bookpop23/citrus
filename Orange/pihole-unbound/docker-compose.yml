@@ -37,12 +37,12 @@ services:
         constraints:
           - node.labels.pihole == pihole1
       labels:
-        traefik.enable: true
+        traefik.enable: 'true'
 
         ## TCP Routers/Services for Admin Interface
         traefik.http.routers.pihole1-admin.service: 'pihole1-admin'
         traefik.http.routers.pihole1-admin.rule: 'Host(`dns1.$DOMAIN`)'
-        traefik.http.services.pihole1-admin.loadbalancer.server.port: 80
+        traefik.http.services.pihole1-admin.loadbalancer.server.port: '80'
 
         # Attach the defined middleware to a router
         traefik.http.routers.pihole-admin.middlewares: 'pihole-redirectregex'
@@ -86,12 +86,12 @@ services:
         constraints:
           - node.labels.pihole == pihole2
       labels:
-        traefik.enable: true
+        traefik.enable: 'true'
 
         ## TCP Routers/Services for Admin Interface
         traefik.http.routers.pihole2-admin.service: 'pihole2-admin'
         traefik.http.routers.pihole2-admin.rule: 'Host(`dns2.$DOMAIN`)'
-        traefik.http.services.pihole2-admin.loadbalancer.server.port: 80
+        traefik.http.services.pihole2-admin.loadbalancer.server.port: '80'
 
         # Attach the defined middleware to a router
         traefik.http.routers.pihole2-admin.middlewares: 'pihole2-redirectregex'
@@ -111,18 +111,18 @@ services:
           - node.labels.unbound == true
       labels:
         # Enable Traefik service for Unbound
-        traefik.enable: true
+        traefik.enable: 'true'
 
         # Enable Traefik TCP router for Unbound
         traefik.tcp.routers.unbound.rule: 'HostSNI(`*`)'
         traefik.tcp.routers.unbound.entrypoints: 'unbound-tcp'
         traefik.tcp.routers.unbound.service: 'unbound-svc'
-        traefik.tcp.services.unbound-svc.loadbalancer.server.port: 5353
+        traefik.tcp.services.unbound-svc.loadbalancer.server.port: '5353'
         
         # Enable Traefik UDP service for Unbound
         traefik.udp.routers.unbound.entrypoints: 'unbound-udp'
         traefik.udp.routers.unbound.service: 'unbound-svc'
-        traefik.udp.services.unbound-svc.loadbalancer.server.port: 5353
+        traefik.udp.services.unbound-svc.loadbalancer.server.port: '5353'
     volumes:
       - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
     environment:
