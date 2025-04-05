@@ -85,9 +85,6 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.graylog.rule=Host(`graylog.$DOMAIN`)
-      - traefik.http.routers.graylog.entrypoints=websecure
-      - traefik.http.routers.graylog.tls=true
-      - traefik.http.routers.graylog.tls.certresolver=cloudflare
       - traefik.http.routers.graylog.service=graylog
       - traefik.http.services.graylog.loadbalancer.server.port=9020
 
