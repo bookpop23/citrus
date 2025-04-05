@@ -17,10 +17,10 @@ services:
         published: 8091
         protocol: tcp
     environment:
-      TZ: $TZ
-      PIHOLE_UID: $PUID
-      PIHOLE_GID: $PGID
-      FTLCONF_webserver_api_password: 'ElmR2314'
+      TZ: '$TZ'
+      PIHOLE_UID: '$PUID'
+      PIHOLE_GID: '$PGID'
+      FTLCONF_webserver_api_password: '$PIHOLE_API_PASSWORD'
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
@@ -66,10 +66,10 @@ services:
         protocol: udp
         mode: host
     environment:
-      TZ: $TZ
-      PIHOLE_UID: $PUID
-      PIHOLE_GID: $PGID
-      FTLCONF_webserver_api_password: 'ElmR2314'
+      TZ: '$TZ'
+      PIHOLE_UID: '$PUID'
+      PIHOLE_GID: '$PGID'
+      FTLCONF_webserver_api_password: '$PIHOLE_API_PASSWORD' # Use the same password as pihole1 or set a new one
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
     cap_add:
@@ -148,9 +148,9 @@ services:
     deploy:
       replicas: 1
     environment:
-      TZ: $TZ
-      PRIMARY: 'http://dns1|ElmR2314'
-      REPLICAS: 'http://dns2|ElmR2314'
+      TZ: '$TZ'
+      PRIMARY: 'http://dns1|$PIHOLE_API_PASSWORD'
+      REPLICAS: 'http://dns2|$PIHOLE_API_PASSWORD'
       FULL_SYNC: 'false'
       CRON: 0 * * *
       RUN_GRAVITY: 'true'
