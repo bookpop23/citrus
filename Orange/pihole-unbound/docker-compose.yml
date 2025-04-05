@@ -104,7 +104,8 @@ services:
         traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement: 'https://dns2.$DOMAIN/admin/'
 
   unbound:
-    image: sgaduuw/unbound:latest
+    # image: sgaduuw/unbound:latest
+    image: mvance/unbound-rpi:latest
     networks:
       - traefik-public
     deploy:
@@ -126,10 +127,10 @@ services:
         traefik.udp.routers.unbound.entrypoints: 'unbound-udp'
         traefik.udp.routers.unbound.service: 'unbound-svc'
         traefik.udp.services.unbound-svc.loadbalancer.server.port: '5353'
-    volumes:
-      - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
-    environment:
-      - UNBOUND_CACHEDB_BACKEND=redis
+    #volumes:
+    #  - $DOCKERDIR/appdata/pihole/unbound:/opt/unbound/etc/unbound/:rw
+    #environment:
+    #  - UNBOUND_CACHEDB_BACKEND=redis
     healthcheck:
       test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
       interval: 30s
