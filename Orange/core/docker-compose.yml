@@ -72,8 +72,8 @@ services:
       - traefik-public
     environment:
       - TZ=${TZ}
-      - PGID=${PGID}
-      - PUID=${PUID}
+      #- PGID=${PGID}
+      #- PUID=${PUID}
       - PGADMIN_DEFAULT_EMAIL=reid@reidsprite.com
       - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/password
       - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=False
