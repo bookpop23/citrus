@@ -120,9 +120,9 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.notifiarr-orange.rule=Host(`notifiarr-orange.$DOMAIN`)
-        - traefik.http.routers.notifiarr-orange.entrypoints=websecure
-        - traefik.http.routers.notifiarr-orange.tls=true
-        - traefik.http.routers.notifiarr-orange.tls.certresolver=cloudflare
+        #- traefik.http.routers.notifiarr-orange.entrypoints=websecure
+        #- traefik.http.routers.notifiarr-orange.tls=true
+        #- traefik.http.routers.notifiarr-orange.tls.certresolver=cloudflare
         - traefik.http.routers.notifiarr-orange.service=notifiarr-orange
         - traefik.http.services.notifiarr-orange.loadbalancer.server.port=5454
 
@@ -147,9 +147,9 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.uptime-kuma.rule=Host(`status.$DOMAIN`)
-        - traefik.http.routers.uptime-kuma.entrypoints=websecure
-        - traefik.http.routers.uptime-kuma.tls=true
-        - traefik.http.routers.uptime-kuma.tls.certresolver=cloudflare
+        #- traefik.http.routers.uptime-kuma.entrypoints=websecure
+        #- traefik.http.routers.uptime-kuma.tls=true
+        #- traefik.http.routers.uptime-kuma.tls.certresolver=cloudflare
         - traefik.http.routers.uptime-kuma.service=uptime-kuma
         - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
 
@@ -179,9 +179,9 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.speedtest.rule=Host(`speedtest.$DOMAIN`)
-        - traefik.http.routers.speedtest.entrypoints=websecure
-        - traefik.http.routers.speedtest.tls=true
-        - traefik.http.routers.speedtest.tls.certresolver=cloudflare
+        #- traefik.http.routers.speedtest.entrypoints=websecure
+        #- traefik.http.routers.speedtest.tls=true
+        #- traefik.http.routers.speedtest.tls.certresolver=cloudflare
         - traefik.http.routers.speedtest.service=speedtest
         - traefik.http.services.speedtest.loadbalancer.server.port=80
 
