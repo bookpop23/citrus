@@ -56,8 +56,12 @@ services:
         traefik.http.routers.traefik.rule: "Host(`traefik.$DOMAIN`)"
         traefik.http.routers.traefik.entrypoints: "websecure"
         traefik.http.routers.traefik.middlewares: "auth"
-        traefik.http.routers.traefik.tls: "true"
-        traefik.http.routers.traefik.tls.certresolver: "cloudflare"
+
+        # Use the Cloudflare DNS challenge for TLS certs
+        # traefik.http.routers.traefik.tls: "true"
+        # traefik.http.routers.traefik.tls.certresolver: "cloudflare"        
+        # traefik.http.routers.traefik.tls.domains[0].main: "$DOMAIN"
+        # traefik.http.routers.traefik.tls.domains[0].sans: "*.$DOMAIN"
 
         # Use the special Traefik service api@internal with the web UI/Dashboard
         traefik.http.routers.traefik.service: "api@internal"
