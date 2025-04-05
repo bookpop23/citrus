@@ -29,8 +29,6 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.swarmpit.rule=Host(`swarmpit.$DOMAIN`)
-        - traefik.http.routers.swarmpit.entrypoints=websecure
-        - traefik.http.routers.swarmpit.tls=true
         - traefik.http.routers.swarmpit.service=swarmpit
         - traefik.http.services.swarmpit.loadbalancer.server.port=888
   db:
