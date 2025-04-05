@@ -153,20 +153,20 @@ services:
       REPLICAS: 'http://dns2|ElmR2314'
       FULL_SYNC: false
       CRON: 0 * * *
-      RUN_GRAVITY: true
-      CLIENT_SKIP_TLS_VERIFICATION: true
-      SYNC_CONFIG_DNS: true
-      SYNC_CONFIG_NTP: true
-      SYNC_CONFIG_RESOLVER: true
-      SYNC_CONFIG_DATABASE: true
-      SYNC_CONFIG_MISC: true
-      SYNC_GRAVITY_GROUP: true
-      SYNC_GRAVITY_AD_LIST: true
-      SYNC_GRAVITY_AD_LIST_BY_GROUP: true
-      SYNC_GRAVITY_DOMAIN_LIST: true
-      SYNC_GRAVITY_DOMAIN_LIST_BY_GROUP: true
-      SYNC_GRAVITY_CLIENT: true
-      SYNC_GRAVITY_CLIENT_BY_GROUP: true
+      RUN_GRAVITY: 'true'
+      CLIENT_SKIP_TLS_VERIFICATION: 'true'
+      SYNC_CONFIG_DNS: 'true'
+      SYNC_CONFIG_NTP: 'true'
+      SYNC_CONFIG_RESOLVER: 'true'
+      SYNC_CONFIG_DATABASE: 'true'
+      SYNC_CONFIG_MISC: 'true'
+      SYNC_GRAVITY_GROUP: 'true'
+      SYNC_GRAVITY_AD_LIST: 'true'
+      SYNC_GRAVITY_AD_LIST_BY_GROUP: 'true'
+      SYNC_GRAVITY_DOMAIN_LIST: 'true'
+      SYNC_GRAVITY_DOMAIN_LIST_BY_GROUP: 'true'
+      SYNC_GRAVITY_CLIENT: 'true'
+      SYNC_GRAVITY_CLIENT_BY_GROUP: 'true'
 
 networks:
   traefik-public:
