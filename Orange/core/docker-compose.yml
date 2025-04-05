@@ -88,7 +88,7 @@ services:
       labels:
         - traefik.enable=true
         - traefik.http.routers.pgadmin.rule=Host(`pgadmin.$DOMAIN`)
-        - traefik.http.routers.pgadmin.entrypoints=websecure
+        #- traefik.http.routers.pgadmin.entrypoints=websecure
         #- traefik.http.routers.pgadmin.tls=true
         #- traefik.http.routers.pgadmin.tls.certresolver=cloudflare
         - traefik.http.routers.pgadmin.service=pgadmin
