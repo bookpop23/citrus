@@ -151,7 +151,7 @@ services:
       TZ: $TZ
       PRIMARY: 'http://dns1|ElmR2314'
       REPLICAS: 'http://dns2|ElmR2314'
-      FULL_SYNC: false
+      FULL_SYNC: 'false'
       CRON: 0 * * *
       RUN_GRAVITY: 'true'
       CLIENT_SKIP_TLS_VERIFICATION: 'true'
