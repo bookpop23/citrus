@@ -6,41 +6,31 @@ services:
     command: server
     hostname: authentik_server
     environment:
-      - TZ=${TZ}
-      - PGID=${PGID}
-      - PUID=${PUID}
-      - AUTHENTIK_REDIS__HOST=redis
-      - AUTHENTIK_POSTGRESQL__HOST=postgresql
-      - AUTHENTIK_POSTGRESQL__USER=authentik
-      - AUTHENTIK_POSTGRESQL__NAME=authentik
-      - AUTHENTIK_POSTGRESQL__PASSWORD=${PG_PASS}
-      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
-      - AUTHENTIK_WEB__WORKERS=2
-      - AUTHENTIK_ERROR_REPORTING__ENABLED=true
-      - AUTHENTIK_LOG_LEVEL=debug
-      - AUTHENTIK_LOGGING__VERSION=1
-      - AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level=DEBUG
+      TZ: $TZ
+      PGID: $PGID
+      PUID: $PUID
+      AUTHENTIK_REDIS__HOST: 'redis'
+      AUTHENTIK_POSTGRESQL__HOST: 'postgresql'
+      AUTHENTIK_POSTGRESQL__USER: 'authentik'
+      AUTHENTIK_POSTGRESQL__NAME: 'authentik'
+      AUTHENTIK_POSTGRESQL__PASSWORD: $PG_PASS
+      AUTHENTIK_SECRET_KEY: $AUTHENTIK_SECRET_KEY
+      AUTHENTIK_WEB__WORKERS: 2
+      AUTHENTIK_ERROR_REPORTING__ENABLED: 'true'
+      AUTHENTIK_LOG_LEVEL: 'debug'
+      AUTHENTIK_LOGGING__VERSION: 1
+      AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level: 'DEBUG'
     networks:
       - traefik-public
     volumes:
       - $DOCKERDIR/appdata/authentik/media:/media
       - $DOCKERDIR/appdata/authentik/custom-templates:/templates
-    # ports:
-    #   - target: 9000
-    #     published: 9010
-    #     protocol: tcp
-    #     mode: ingress
-    #   - target: 9443
-    #     published: 9543
-    #     protocol: tcp
-    #     mode: ingress
     deploy:
       labels:
-        traefik.enable: "true"
-        traefik.http.routers.authentik.entrypoints: "websecure"
-        traefik.http.routers.authentik.rule: "Host(`auth.$DOMAIN`)"
-        traefik.http.routers.authentik.service: "authentik"
-        traefik.http.services.authentik.loadbalancer.server.port: "9000"
+        traefik.enable: 'true'
+        traefik.http.routers.authentik.rule: 'Host(`auth.$DOMAIN`) && PathPrefix(`/outpost.goauthentik.io/`)'
+        traefik.http.routers.authentik.service: 'authentik'
+        traefik.http.services.authentik.loadbalancer.server.port: '9000'
   worker:
     image: ghcr.io/goauthentik/server:latest
     command: worker
@@ -80,20 +70,20 @@ services:
     networks:
       - traefik-public
     environment:
-      - TZ=${TZ}
+      TZ: $TZ
     deploy:
       labels:
-        traefik.enable: "true"
-        traefik.http.routers.whoami-catchall.rule: "Host(`whoami-catchall.reidsprite.com`)"
-        traefik.http.routers.whoami-catchall.middlewares: "authentik@file"
+        traefik.enable: 'true'
+        traefik.http.routers.whoami-catchall.rule: 'Host(`whoami-catchall.reidsprite.com`)''
+        traefik.http.routers.whoami-catchall.middlewares: 'authentik@file'
         traefik.http.routers.whoami-catchall.priority: 10
-        traefik.http.routers.whoami-catchall.service: "whoami-catchall"
-        traefik.http.services.whoami-catchall.loadbalancer.server.port: 80
+        traefik.http.routers.whoami-catchall.service: 'whoami-catchall'
+        traefik.http.services.whoami-catchall.loadbalancer.server.port: '80'
 
-        traefik.http.routers.whoami-catchall-auth.rule: "Host(`whoami-catchall.reidsprite.com`) && PathPrefix(`/outpost.goauthentik.io/`)"
-        traefik.http.routers.whoami-catchall-auth.priority: 15
-        traefik.http.routers.whoami-catchall-auth.service: "authentik"
-        traefik.http.services.whoami-catchall-auth.loadbalancer.server.port: 9000
+        # traefik.http.routers.whoami-catchall-auth.rule: "Host(`whoami-catchall.reidsprite.com`) && PathPrefix(`/outpost.goauthentik.io/`)"
+        # traefik.http.routers.whoami-catchall-auth.priority: 15
+        # traefik.http.routers.whoami-catchall-auth.service: "authentik"
+        # traefik.http.services.whoami-catchall-auth.loadbalancer.server.port: 9000
 
 networks:
   traefik-public:
