@@ -28,7 +28,8 @@ services:
     deploy:
       labels:
         traefik.enable: 'true'
-        traefik.http.routers.authentik.rule: 'Host(`auth.$DOMAIN`) && PathPrefix(`/outpost.goauthentik.io/`)'
+        traefik.http.routers.authentik.rule: 'Host(`auth.${DOMAIN}`)'
+        traefik.http.routers.authentik-output.rule:  'HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)''
         traefik.http.routers.authentik.service: 'authentik'
         traefik.http.services.authentik.loadbalancer.server.port: '9000'
   worker:
@@ -74,7 +75,7 @@ services:
     deploy:
       labels:
         traefik.enable: 'true'
-        traefik.http.routers.whoami-catchall.rule: 'Host(`whoami-catchall.reidsprite.com`)'
+        traefik.http.routers.whoami-catchall.rule: 'Host(`whoami-catchall.${DOMAIN}`)'
         traefik.http.routers.whoami-catchall.middlewares: 'authentik@file'
         traefik.http.routers.whoami-catchall.priority: 10
         traefik.http.routers.whoami-catchall.service: 'whoami-catchall'
