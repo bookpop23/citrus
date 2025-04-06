@@ -1,7 +1,7 @@
 services:
   pihole1:
     image: pihole/pihole:latest
-    hostname: dns1
+    hostname: pihole1
     networks:
       - traefik-public  # Allow Swarm services to use Pi-hole as DNS
     ports:
@@ -17,12 +17,12 @@ services:
         published: 8091
         protocol: tcp
     environment:
-      TZ: '$TZ'
-      PIHOLE_UID: '$PUID'
-      PIHOLE_GID: '$PGID'
-      FTLCONF_webserver_api_password: '$PIHOLE_API_PASSWORD'
+      TZ: ${TZ}
+      PIHOLE_UID: ${PUID}
+      PIHOLE_GID: ${PGID}
+      FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD}
       FTLCONF_dns_dnssec: 'true'
-      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
+      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,${DOMAIN}'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -41,21 +41,21 @@ services:
 
         ## TCP Routers/Services for Admin Interface
         traefik.http.routers.pihole1-admin.service: 'pihole1-admin'
-        traefik.http.routers.pihole1-admin.rule: 'Host(`dns1.$DOMAIN`)'
+        traefik.http.routers.pihole1-admin.rule: 'Host(`dns1.${DOMAIN}`)'
         traefik.http.services.pihole1-admin.loadbalancer.server.port: '80'
 
         # Attach the defined middleware to a router
         traefik.http.routers.pihole1-admin.middlewares: 'pihole1-redirectregex'
         # Define a middleware regex
-        traefik.http.middlewares.pihole1-redirectregex.redirectregex.regex: '^https?://dns1.$DOMAIN/$$'
+        traefik.http.middlewares.pihole1-redirectregex.redirectregex.regex: '^https?://dns1.${DOMAIN}/$$'
         # Define a replacement
-        traefik.http.middlewares.pihole1-redirectregex.redirectregex.replacement: 'https://dns1.$DOMAIN/admin/'
+        traefik.http.middlewares.pihole1-redirectregex.redirectregex.replacement: 'https://dns1.${DOMAIN}/admin/'
   
   pihole2:
     image: pihole/pihole:latest
-    hostname: dns2
+    hostname: pihole2
     networks:
-      - traefik-public  # Allow Swarm services to use Pi-hole as DNS
+      - traefik-public
     ports:
       - target: 53
         published: 53
@@ -69,12 +69,12 @@ services:
         published: 8092
         protocol: tcp
     environment:
-      TZ: '$TZ'
-      PIHOLE_UID: '$PUID'
-      PIHOLE_GID: '$PGID'
-      FTLCONF_webserver_api_password: '$PIHOLE_API_PASSWORD' # Use the same password as pihole1 or set a new one
+      TZ: ${TZ}
+      PIHOLE_UID: ${PUID}
+      PIHOLE_GID: ${PGID}
+      FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD} # Use the same password as pihole1
       FTLCONF_dns_dnssec: 'true'
-      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,$DOMAIN'
+      FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,${DOMAIN}'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -93,15 +93,15 @@ services:
 
         ## TCP Routers/Services for Admin Interface
         traefik.http.routers.pihole2-admin.service: 'pihole2-admin'
-        traefik.http.routers.pihole2-admin.rule: 'Host(`dns2.$DOMAIN`)'
+        traefik.http.routers.pihole2-admin.rule: 'Host(`dns2.${DOMAIN}`)'
         traefik.http.services.pihole2-admin.loadbalancer.server.port: '80'
 
         # Attach the defined middleware to a router
         traefik.http.routers.pihole2-admin.middlewares: 'pihole2-redirectregex'
         # Define a middleware regex
-        traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex: '^https?://dns2.$DOMAIN/$$'
+        traefik.http.middlewares.pihole2-redirectregex.redirectregex.regex: '^https?://dns2.${DOMAIN}/$$'
         # Define a replacement
-        traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement: 'https://dns2.$DOMAIN/admin/'
+        traefik.http.middlewares.pihole2-redirectregex.redirectregex.replacement: 'https://dns2.${DOMAIN}/admin/'
 
   unbound:
     # image: sgaduuw/unbound:latest
@@ -153,8 +153,8 @@ services:
       replicas: 1
     environment:
       TZ: '$TZ'
-      PRIMARY: 'http://dns1|$PIHOLE_API_PASSWORD'
-      REPLICAS: 'http://dns2|$PIHOLE_API_PASSWORD'
+      PRIMARY: 'http://pihole1|${PIHOLE_API_PASSWORD}'
+      REPLICAS: 'http://pihole2|${PIHOLE_API_PASSWORD}'
       FULL_SYNC: 'false'
       CRON: 0 * * * *
       RUN_GRAVITY: 'true'
