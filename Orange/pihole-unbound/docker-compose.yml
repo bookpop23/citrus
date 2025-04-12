@@ -106,6 +106,7 @@ services:
   unbound:
     # image: sgaduuw/unbound:latest
     image: mvance/unbound-rpi:latest
+    hostname: unbound
     networks:
       - traefik-public
     deploy:
