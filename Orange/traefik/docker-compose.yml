@@ -19,7 +19,15 @@ services:
         mode: host  # ✅ Redis via Traefik
       - target: 5432
         published: 5432
-        mode: host  # ✅ PostgreSQL via Traefik
+        mode: host  # ✅ PostgreSQL via Traefik  
+      - target: 5353  # Unbound TCP
+        published: 5353
+        protocol: tcp
+        mode: host
+      - target: 5353  # Unbound UDP
+        published: 5353
+        protocol: udp
+        mode: host
     # healthcheck:
     #   test: ["CMD-SHELL", "/bin/ash", "-c", "traefik healthcheck"]
     #   start_period: 90s
