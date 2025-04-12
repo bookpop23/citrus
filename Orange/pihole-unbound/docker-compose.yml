@@ -130,14 +130,6 @@ services:
         traefik.udp.services.unbound-svc.loadbalancer.server.port: '5353'
     volumes:
       - $DOCKERDIR/appdata/unbound:/opt/unbound/etc/unbound/:rw
-    #environment:
-    #  - UNBOUND_CACHEDB_BACKEND=redis
-    healthcheck:
-      test: ["CMD", "drill", "@127.0.0.1", "dnssec.works"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 60s
 
   nebula-sync:
     image: lovelaze/nebula-sync:latest
