@@ -122,12 +122,12 @@ services:
         traefik.tcp.routers.unbound.rule: 'HostSNI(`*`)'
         traefik.tcp.routers.unbound.entrypoints: 'unbound-tcp'
         traefik.tcp.routers.unbound.service: 'unbound-svc'
-        traefik.tcp.services.unbound-svc.loadbalancer.server.port: '5353'
+        traefik.tcp.services.unbound-svc.loadbalancer.server.port: '53'
         
         # Enable Traefik UDP service for Unbound
         traefik.udp.routers.unbound.entrypoints: 'unbound-udp'
         traefik.udp.routers.unbound.service: 'unbound-svc'
-        traefik.udp.services.unbound-svc.loadbalancer.server.port: '5353'
+        traefik.udp.services.unbound-svc.loadbalancer.server.port: '53'
     volumes:
       - $DOCKERDIR/appdata/unbound:/opt/unbound/etc/unbound/:rw
 
