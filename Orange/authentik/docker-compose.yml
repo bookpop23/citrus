@@ -29,7 +29,7 @@ services:
       labels:
         traefik.enable: 'true'
         traefik.http.routers.authentik.rule: 'Host(`auth.${DOMAIN}`)'
-        traefik.http.routers.authentik-output.rule: "HostRegexp(`^.+.${DOMAIN}$`) && PathPrefix(`/outpost.goauthentik.io/`)"
+        traefik.http.routers.authentik-output.rule: 'HostRegexp(`^.+.${DOMAIN}$$`) && PathPrefix(`/outpost.goauthentik.io/`)'
         traefik.http.routers.authentik.service: 'authentik'
         traefik.http.services.authentik.loadbalancer.server.port: '9000'
   worker:
