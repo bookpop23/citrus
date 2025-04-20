@@ -111,11 +111,11 @@ services:
       - traefik-public
     ports:
       - target: 53
-        published: 5353
+        published: 5335
         protocol: tcp
         mode: host
       - target: 53
-        published: 5353
+        published: 5335
         protocol: udp
         mode: host
     deploy:
