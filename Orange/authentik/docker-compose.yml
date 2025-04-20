@@ -19,7 +19,7 @@ services:
       AUTHENTIK_ERROR_REPORTING__ENABLED: 'true'
       AUTHENTIK_LOG_LEVEL: 'INFO'
       AUTHENTIK_LOGGING__VERSION: 1
-      AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level: 'INFO'
+      # AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level: 'INFO'
     networks:
       - traefik-public
     volumes:
