@@ -19,7 +19,7 @@ services:
       AUTHENTIK_ERROR_REPORTING__ENABLED: 'true'
       AUTHENTIK_LOG_LEVEL: 'INFO'
       AUTHENTIK_LOGGING__VERSION: 1
-      # AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level: 'INFO'
+      AUTHENTIK_LOGGING__LOGGERS__authentik.providers.proxy__level: 'INFO'
     networks:
       - traefik-public
     volumes:
@@ -29,9 +29,12 @@ services:
       labels:
         traefik.enable: 'true'
         traefik.http.routers.authentik.rule: 'Host(`auth.${DOMAIN}`)'
-        # traefik.http.routers.authentik-output.rule: 'HostRegexp(`^.+\.${DOMAIN}$$`) && PathPrefix(`/outpost.goauthentik.io/`)'
         traefik.http.routers.authentik.service: 'authentik'
         traefik.http.services.authentik.loadbalancer.server.port: '9000'
+
+        #traefik.http.routers.authentik-outpost.rule: 'HostRegexp(`^.+\.${DOMAIN}$$`) && PathPrefix(`/outpost.goauthentik.io/`)'
+        #traefik.http.routers.authentik-outpost.service: 'authentik'
+        #traefik.http.routers.authentik-outpost.priority: '20'
   worker:
     image: ghcr.io/goauthentik/server:latest
     command: worker
