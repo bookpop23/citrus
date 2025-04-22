@@ -10,9 +10,8 @@ services:
       - BIND_IP=192.168.1.10
     networks:
       - bridge_ipv6
-    dns:
-      - 192.168.1.11
-      - 192.168.1.22
+    ports:
+      - 6379:6379/udp
 
 networks:
   bridge_ipv6:
