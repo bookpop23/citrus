@@ -6,10 +6,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - REDIS_ADDR=traefik.reidsprite.com:6379
+      - REDIS_ADDR=orange:6379
       - BIND_IP=192.168.1.10
     networks:
       - bridge_ipv6
+    dns:
+      - 192.168.1.11
+      - 192.168.1.22
 
 networks:
   bridge_ipv6:
