@@ -6,14 +6,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - REDIS_ADDR=orange:6379
+      - REDIS_ADDR=192.168.1.11:6379
       - BIND_IP=192.168.1.10
     networks:
       - bridge_ipv6
-    ports:
-      - 6379:6379/udp
 
 networks:
   bridge_ipv6:
     external: true
-    enable_ipv6: false
