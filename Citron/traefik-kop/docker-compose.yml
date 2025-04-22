@@ -14,5 +14,4 @@ services:
 networks:
   bridge_ipv6:
     external: true
-    ipv6:
-      enabled: false
+    enable_ipv6: false
