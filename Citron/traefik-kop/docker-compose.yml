@@ -1,6 +1,7 @@
 services:
   traefik-kop:
     image: ghcr.io/jittering/traefik-kop:latest
+    hostname: traefik-kop
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
