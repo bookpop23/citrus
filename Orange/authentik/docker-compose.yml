@@ -32,7 +32,7 @@ services:
         traefik.http.routers.authentik.service: authentik
         traefik.http.services.authentik.loadbalancer.server.port: 9000
 
-        traefik.http.routers.authentik-callback.rule: 'Host(`auth.${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`) && !PathPrefix(`/outpost.goauthentik.io/auth/`)'
+        traefik.http.routers.authentik-callback.rule: 'Host(`auth.${DOMAIN}`) && (PathPrefix(`/outpost.goauthentik.io/callback`) || PathPrefix(`/outpost.goauthentik.io/jwks`))'
         traefik.http.routers.authentik-callback.service: authentik
         traefik.http.routers.authentik-callback.priority: 200
   worker:
