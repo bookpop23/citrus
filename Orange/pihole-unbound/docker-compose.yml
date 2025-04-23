@@ -110,14 +110,16 @@ services:
     networks:
       - traefik-public
     ports:
-      - target: 53
-        published: 5335
-        protocol: tcp
-        mode: host
-      - target: 53
-        published: 5335
-        protocol: udp
-        mode: host
+      - 53:5335/udp
+      - 53:5335/tcp
+      # - target: 53
+      #   published: 5335
+      #   protocol: tcp
+      #   mode: host
+      # - target: 53
+      #   published: 5335
+      #   protocol: udp
+      #   mode: host
     deploy:
       replicas: 2
       placement:
