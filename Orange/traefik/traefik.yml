@@ -21,6 +21,13 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
+    asDefault: true
+    http:
+      tls:
+        certresolver: cloudflare
+        domains:
+          - main: "reidsprite.com"
+          - sans: "*.reidsprite.com"
     forwardedHeaders:
       trustedIPs:
         # Cloudflare (https://www.cloudflare.com/ips-v4)
@@ -44,10 +51,10 @@ entryPoints:
         - "10.0.0.0/8"
         - "192.168.0.0/16"
         - "172.16.0.0/12"
-#  dns-tcp:
-#    address: ":53"
-#  dns-udp:
-#    address: ":53/udp"
+  unbound-tcp:
+    address: ":5353"
+  unbound-udp:
+    address: ":5353/udp"
   redis-tcp:
     address: ":6379"
   postgresql-tcp:
@@ -57,28 +64,29 @@ entryPoints:
 # Logs - https://doc.traefik.io/traefik/observability/logs/
 ################################################################
 log:
-  level: INFO # Options: DEBUG, PANIC, FATAL, ERROR (Default), WARN, and INFO
-  # filePath: /logs/traefik-container.log # Default is to STDOUT
-  # # format: json # Uses text format (common) by default
-  # noColor: false # Recommended to be true when using common
-  # maxSize: 100 # In megabytes
+  level: "INFO" # Options: DEBUG, PANIC, FATAL, ERROR (Default), WARN, and INFO
+#  filePath: /logs/traefik.log # Default is to STDOUT
+  format: "json" # Uses text format (common) by default
+  noColor: false # Recommended to be true when using common
+  maxSize: 100 # In megabytes
   # compress: true # gzip compression when rotating
 
 ################################################################
 # Access logs - https://doc.traefik.io/traefik/observability/access-logs/
 ################################################################
-# accessLog:
-#   addInternals: true  # things like ping@internal
-#   filePath: /logs/traefik-access.log # In the Common Log Format (CLF) by default
-#   bufferingSize: 100 # Number of log lines
-#   fields:
-#     names:
-#       StartUTC: drop  # Write logs in Container Local Time instead of UTC
-#   filters:
-#     statusCodes:
-#       - "204-299"
-#       - "400-499"
-#       - "500-599"
+accessLog:
+#  addInternals: true  # things like ping@internal
+#  filePath: /logs/access.log # In the Common Log Format (CLF) by default
+  format: "json"
+  bufferingSize: 100 # Number of log lines
+#  fields:
+#    names:
+##      StartUTC: drop  # Write logs in Container Local Time instead of UTC
+  filters:
+    statusCodes:
+      - "204-299"
+      - "400-499"
+      - "500-599"
 
 ################################################################
 # Providers - https://doc.traefik.io/traefik/providers/docker/
@@ -92,7 +100,7 @@ providers:
     network: "traefik-public"
   redis:
     endpoints:
-     - 'core_redis:6389'
+      - 'localhost:6379'
     rootkey: 'traefik'
 
   # Enable auto loading of newly created rules by watching a directory
@@ -115,15 +123,29 @@ api:
 certificatesResolvers:
   cloudflare:
     acme:
-      email: reid@reidsprite.com
-      storage: /certs/acme.json
+      email: 'reid@reidsprite.com'
+      storage: '/unshared/acme.json'
       caServer: 'https://acme-v02.api.letsencrypt.org/directory'   # production
       # caserver: 'https://acme-staging-v02.api.letsencrypt.org/directory'   # staging
       # httpChallenge:
       #   entryPoint: web
       dnsChallenge:
         provider: cloudflare
-        # disablePropagationCheck: true # uncomment this if you have issues pulling certificates through cloudflare, By setting this >
+        propagation:
+          delayBeforeChecks: 2s
+          # disableChecks: true
         resolvers:
           - '1.1.1.1:53'
           - '1.0.0.1:53'
+#  zerossl:
+#    acme:
+#      email: 'reid@reidsprite.com'
+#      storage: '/certs/zerossl-acme.json'
+#      caServer: 'https://acme.zerossl.com/v2/DV90'
+#      dnsChallenge:
+#        provider: cloudflare
+#        propagation:
+#          delayBeforeChecks: 2s
+#    eab:
+#      kid: 'VZzfjzyjB5XArO0HC1s-Tw'
+#      hmacEncoded: 'Yth_UycbQNgEY_uE6xQ5ltru56Ge35bKmmxD7SWxiLuHNlwerH0sO0FEnT__6f24wR458KarrWkZzzuwTvB-_w'
