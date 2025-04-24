@@ -35,12 +35,12 @@ services:
         # Domain Wide forwardAuth regex
         # traefik.http.routers.authentik-callback.rule: 'Host(`auth.${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)'
         # Individual Application forwardAuth regex (catch any subdomain using individual application forwardAuth)  
-        traefik.http.routers.authentik-callback.rule: 'HostSNIRegexp(`^.+\${DOMAIN}$$`) && PathPrefix(`/outpost.goauthentik.io/`)'
+        traefik.http.routers.authentik-callback.rule: 'HostRegexp(`^.+\${DOMAIN}$$`) && PathPrefix(`/outpost.goauthentik.io/`)'
         traefik.http.routers.authentik-callback.service: authentik
         traefik.http.routers.authentik-callback.tls: 'true'
         traefik.http.routers.authentik-callback.tls.certresolver: cloudflare
-        traefik.http.routers.authentik-callback.tls.domains[0].main: ${DOMAIN}
-        traefik.http.routers.authentik-callback.tls.domains[0].sans: '*.${DOMAIN}'
+        traefik.http.routers.authentik-callback.tls.domain.main: ${DOMAIN}
+        traefik.http.routers.authentik-callback.tls.domain.sans: '*.${DOMAIN}'
         traefik.http.routers.authentik-callback.priority: 200
   worker:
     image: ghcr.io/goauthentik/server:latest
