@@ -39,8 +39,8 @@ services:
         traefik.http.routers.authentik-callback.service: authentik
         traefik.http.routers.authentik-callback.tls: 'true'
         traefik.http.routers.authentik-callback.tls.certresolver: cloudflare
-        traefik.http.routers.authentik-callback.tls.domain.main: ${DOMAIN}
-        traefik.http.routers.authentik-callback.tls.domain.sans: '*.${DOMAIN}'
+        traefik.http.routers.authentik-callback.tls.domain[0].main: ${DOMAIN}
+        traefik.http.routers.authentik-callback.tls.domain[0].sans: '*.${DOMAIN}'
         traefik.http.routers.authentik-callback.priority: 200
   worker:
     image: ghcr.io/goauthentik/server:latest
