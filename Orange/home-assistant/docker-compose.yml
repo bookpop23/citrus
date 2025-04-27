@@ -68,7 +68,7 @@ services:
         - traefik.enable=true
         - traefik.http.routers.ha.rule=Host(`ha.$DOMAIN`)
         - traefik.http.routers.ha.service=ha
-        #- traefik.http.routers.ha.middlewares=forwardAuth-authentik@file
+        - traefik.http.routers.ha.middlewares=authentik@file
         - traefik.http.services.ha.loadbalancer.server.port=8123
 networks:
   traefik-public:
