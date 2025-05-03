@@ -2,47 +2,10 @@ services:
   ha:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: home-assistant
-    # ports:
-    #   - target: 1900          # SSDP Discovery and uPNP
-    #     published: 1900
-    #     protocol: udp
-    #     mode: host
-    #   - target: 5353          # mDNS
-    #     published: 5353
-    #     protocol: udp
-    #     mode: host
-    #   - target: 6444       # Midea SmartHome
-    #     published: 6444
-    #     protocol: tcp
-    #     mode: host
-    #   - target: 6445       # Midea SmartHome
-    #     published: 6445
-    #     protocol: udp
-    #     mode: host
-    #   - target: 8554
-    #     published: 8554
-    #     protocol: tcp
-    #     mode: host
-    #   - target: 8555
-    #     published: 8555
-    #     protocol: tcp
-    #     mode: host
-    #   - target: 9999        # Kasa
-    #     published: 9999
-    #     protocol: udp
-    #     mode: host
-    #   - target: 20086       # uPNP
-    #     published: 20086
-    #     protocol: tcp
-    #     mode: host
-    #   - target: 40000       # uPNP
-    #     published: 40000
-    #     protocol: tcp
-    #     mode: host
-      # - target: 8123
-      #   published: 8123
-      #   protocol: tcp
-      #   mode: ingress
+    hostname: ha
+    dns:
+      - 192.168.1.11
+      - 192.168.1.22
     volumes:
       - $DOCKERDIR/appdata/home-assistant/config:/config
       - /run/dbus:/run/dbus:ro
