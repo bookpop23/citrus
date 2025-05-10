@@ -12,10 +12,9 @@ services:
     restart: unless-stopped
     privileged: true
     networks:
-      traefik-public: {}
-      macvlan_ha_ipv4:
-        ipv4_address: 192.168.3.1
-        
+      - traefik-public
+      - macvlan_ha_ipv4
+
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
@@ -36,7 +35,6 @@ services:
         - traefik.http.routers.ha.service=ha
         - traefik.http.routers.ha.middlewares=authentik@file
         - traefik.http.services.ha.loadbalancer.server.port=8123
-
 
 networks:
   traefik-public:
