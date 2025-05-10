@@ -2,7 +2,7 @@ services:
   ha:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: home-assistant
-    hostname: ha
+    hostname: home-assistant
     dns:
       - 192.168.1.11
       - 192.168.1.22
@@ -34,6 +34,8 @@ services:
         - traefik.http.routers.ha.service=ha
         - traefik.http.routers.ha.middlewares=authentik@file
         - traefik.http.services.ha.loadbalancer.server.port=8123
+
+
 networks:
   traefik-public:
     external: true
