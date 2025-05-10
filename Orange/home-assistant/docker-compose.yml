@@ -12,8 +12,7 @@ services:
     restart: unless-stopped
     privileged: true
     networks:
-      traefik-public:
-        default: {}
+      traefik-public: {}
       macvlan_ha_ipv4:
         ipv4_address: 192.168.3.1
         
