@@ -36,6 +36,11 @@ services:
         - traefik.http.routers.ha.middlewares=authentik@file
         - traefik.http.services.ha.loadbalancer.server.port=8123
 
+        - traefik.http.routers.ha-insecure.entrypoints=web
+        - traefik.http.routers.ha-insecure.tls=false
+        - traefik.http.routers.ha-insecure.rule=Host(`home-assistant`)
+        - traefik.http.routers.ha-insecure.service=ha-insecure
+        - traefik.http.services.ha-insecure.loadbalancer.server.port=8123
 networks:
   traefik-public:
     external: true
