@@ -12,9 +12,10 @@ services:
     restart: unless-stopped
     privileged: true
     networks:
-      - traefik-public
-      - macvlan_ha_ipv4:
-          ipv4_address: 192.168.3.1
+      traefik-public:
+        default: {}
+      macvlan_ha_ipv4:
+        ipv4_address: 192.168.3.1
         
     environment:
       - PGID=${PGID}
