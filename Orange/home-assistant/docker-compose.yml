@@ -14,9 +14,6 @@ services:
     networks:
       - traefik-public
       - macvlan_ha_ipv4
-    ports:
-      - 8123:8123
-
     environment:
       - PGID=${PGID}
       - PUID=${PUID}
