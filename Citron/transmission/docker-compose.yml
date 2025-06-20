@@ -60,3 +60,7 @@ services:
       driver: gelf
       options:
         gelf-address: "udp://127.0.0.1:12201"
+  
+  networks:
+    bridge_ipv6:
+      external: true
