@@ -1,0 +1,62 @@
+services:
+  transmission-openvpn:
+    image: haugene/transmission-openvpn:latest
+    hostname: transmission
+    container_name: transmission-openvpn
+    ports:
+      - 9091:9091
+    networks:
+      - bridge_ipv6
+    restart: on-failure
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /volume1/Download/Transmission:/data
+      - /volume1/docker/transmission/config:/config
+      - /volume1/Private:/private
+    environment:
+      PUID: 1026
+      PGID: 100
+      OPENVPN_PROVIDER: 'PIA'
+      OPENVPN_CONFIG: 'ca_montreal'
+      OPENVPN_USERNAME: 'p7971309'
+      OPENVPN_PASSWORD: '23WhitePm!Star'
+      LOCAL_NETWORK: '192.168.0.0/16,172.16.0.0/16,10.0.0.0/8'
+      GLOBAL_APPLY_PERMISSIONS: 'true'
+      TRANSMISSION_HOME: '/config/transmission-home'
+      TRANSMISSION_RPC_PORT: '9091'
+      TRANSMISSION_DOWNLOAD_DIR: '/data/completed'
+      TRANSMISSION_INCOMPLETE_DIR: '/data/incomplete'
+      TRANSMISSION_WATCH_DIR: '/data/watch'
+      CREATE_TUN_DEVICE: 'true'
+      ENABLE_UFW: 'false'
+      UFW_ALLOW_GW_NET: 'false'
+      UFW_DISABLE_IPTABLES_REJECT: 'false'
+      PEER_DNS: 'true'
+      PEER_DNS_PIN_ROUTES: 'true'
+      WEBPROXY_ENABLED: 'false'
+      WEBPROXY_PORT: '8118'
+      LOG_TO_STDOUT: 'false'
+      HEALTH_CHECK_HOST: 'google.com'
+      SELFHEAL: 'false'
+    healthcheck:
+      test: ["CMD", "curl", "-fL", "http://127.0.0.1:9091"]
+      interval: 2s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536 # Fixes too many open files error
+    deploy:
+      labels:
+        autoheal: 'true'
+        traefik.enable: 'true'
+        traefik.http.routers.transmission.rule: 'Host(`transmission.reidsprite.com`) && PathPrefix(`/transmission`)'
+        traefik.http.routers.transmission.service: 'transmission'
+        traefik.http.services.transmission.loadbalancer.server.port: '9091'
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
