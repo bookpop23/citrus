@@ -15,6 +15,7 @@ services:
       - /volume1/docker/transmission/config:/config
       - /volume1/Private:/private
     environment:
+      TZ: 'America/New_York'
       PUID: 1026
       PGID: 100
       OPENVPN_PROVIDER: 'PIA'
