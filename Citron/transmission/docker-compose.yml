@@ -50,13 +50,12 @@ services:
       nofile:
         soft: 65536
         hard: 65536 # Fixes too many open files error
-    deploy:
-      labels:
-        autoheal: 'true'
-        traefik.enable: 'true'
-        traefik.http.routers.transmission.rule: 'Host(`transmission.reidsprite.com`) && PathPrefix(`/transmission`)'
-        traefik.http.routers.transmission.service: 'transmission'
-        traefik.http.services.transmission.loadbalancer.server.port: '9091'
+    labels:
+      autoheal: 'true'
+      traefik.enable: 'true'
+      traefik.http.routers.transmission.rule: 'Host(`transmission.reidsprite.com`) && PathPrefix(`/transmission`)'
+      traefik.http.routers.transmission.service: 'transmission'
+      traefik.http.services.transmission.loadbalancer.server.port: '9091'
     logging:
       driver: gelf
       options:
