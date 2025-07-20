@@ -4,7 +4,10 @@ services:
     container_name: influxdb2
     restart: unless-stopped
     ports:
-      - 8086:8086
+      - target: 8086
+        published: 8086
+        protocol: tcp
+        mode: host
     volumes:
       - $DOCKERDIR/appdata/influxdb2/data:/var/lib/influxdb2
       - $DOCKERDIR/appdata/influxdb2/config:/etc/influxdb2
