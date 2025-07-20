@@ -50,6 +50,8 @@ services:
       - $DOCKERDIR/appdata/influxdb2/config:/etc/influxdb2
     networks:
       - traefik-public
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
     deploy:
       mode: replicated
       replicas: 1
