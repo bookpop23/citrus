@@ -13,6 +13,12 @@ services:
       - $DOCKERDIR/appdata/influxdb2/config:/etc/influxdb2
     networks:
       - traefik-public
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=reid.sprite
+      - 'DOCKER_INFLUXDB_INIT_PASSWORD=23WhiteCn!Star'
+      - DOCKER_INFLUXDB_INIT_ORG=reidsprite.com
+      - DOCKER_INFLUXDB_INIT_BUCKET=home-assistant
     deploy:
       mode: replicated
       replicas: 1
