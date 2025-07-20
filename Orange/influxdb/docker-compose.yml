@@ -2,6 +2,7 @@ services:
   influxdb2:
     image: influxdb:2
     container_name: influxdb2
+    hostname: influxdb
     restart: unless-stopped
     ports:
       - target: 8086
