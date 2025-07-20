@@ -40,6 +40,25 @@ services:
         - traefik.http.routers.ha-insecure.rule=Host(`home-assistant`)
         - traefik.http.routers.ha-insecure.service=ha-insecure
         - traefik.http.services.ha-insecure.loadbalancer.server.port=8123
+
+  influxdb2:
+    image: influxdb:2
+    container_name: influxdb2
+    restart: unless-stopped
+    volumes:
+      - $DOCKERDIR/appdata/influxdb2/data:/var/lib/influxdb2
+      - $DOCKERDIR/appdata/influxdb2/config:/etc/influxdb2
+    networks:
+      - traefik-public
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.influxdb.rule=Host(`influxdb.$DOMAIN`)
+        - traefik.http.routers.influxdb.service=influxdb
+        - traefik.http.services.influxdb.loadbalancer.server.port=8086
+  
 networks:
   traefik-public:
     external: true

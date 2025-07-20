@@ -41,7 +41,7 @@ services:
       PEER_DNS_PIN_ROUTES: 'true'
       WEBPROXY_ENABLED: 'false'
       WEBPROXY_PORT: '8118'
-      LOG_TO_STDOUT: 'false'
+      LOG_TO_STDOUT: 'true'
       HEALTH_CHECK_HOST: 'google.com'
       SELFHEAL: 'false'
     healthcheck:
