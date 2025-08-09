@@ -53,10 +53,10 @@ services:
       replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.ha.rule=Host(`esphome.$DOMAIN`)
-        - traefik.http.routers.ha.service=esphome
-        - traefik.http.routers.ha.middlewares=authentik@file
-        - traefik.http.services.ha.loadbalancer.server.port=6052
+        - traefik.http.routers.esphome.rule=Host(`esphome.$DOMAIN`)
+        - traefik.http.routers.esphome.service=esphome
+        - traefik.http.routers.esphome.middlewares=authentik@file
+        - traefik.http.services.esphome.loadbalancer.server.port=6052
 
 networks:
   traefik-public:
