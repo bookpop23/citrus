@@ -40,7 +40,24 @@ services:
         - traefik.http.routers.ha-insecure.rule=Host(`home-assistant`)
         - traefik.http.routers.ha-insecure.service=ha-insecure
         - traefik.http.services.ha-insecure.loadbalancer.server.port=8123
-  
+
+  esphome:
+    image: ghcr.io/esphome/esphome
+    container_name: esphome
+    volumes:
+      - $DOCKERDIR/appdata/esphome/config:/config
+    networks:
+      - traefik-public
+    deploy:
+      mode: replicated 
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.ha.rule=Host(`esphome.$DOMAIN`)
+        - traefik.http.routers.ha.service=esphome
+        - traefik.http.routers.ha.middlewares=authentik@file
+        - traefik.http.services.ha.loadbalancer.server.port=6052
+
 networks:
   traefik-public:
     external: true
