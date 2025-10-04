@@ -4,6 +4,7 @@ services:
     volumes:
       - '$DOCKERDIR/ollama/data:/root/.ollama'
     container_name: ollama
+    hostname: ollama
     ports:
       - 11434:11434
     tty: true
@@ -24,7 +25,7 @@ services:
     depends_on:
       - ollama
     environment:
-      OLLAMA_BASE_URL: 'http://localhost:11434'
+      OLLAMA_BASE_URL: 'http://ollama:11434'
       WEBUI_SECRET_KEY: '243tuil234gut2i5l34gt3t5hiuohgoigeho'
     ports:
       - 3000:8080
