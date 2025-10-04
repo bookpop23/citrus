@@ -11,6 +11,8 @@ services:
     restart: unless-stopped
     networks:
       - bridge_ipv6
+    environment:
+      OLLAMA_HOST: '0.0.0.0'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.ollama.rule: 'Host(`ollama.$DOMAIN`)'
@@ -26,7 +28,6 @@ services:
       - ollama
     environment:
       OLLAMA_BASE_URL: 'http://ollama:11434'
-      OLLAMA_HOST: '0.0.0.0'
       WEBUI_SECRET_KEY: '243tuil234gut2i5l34gt3t5hiuohgoigeho'
     ports:
       - 3000:8080
