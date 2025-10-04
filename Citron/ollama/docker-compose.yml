@@ -10,7 +10,7 @@ services:
     tty: true
     restart: unless-stopped
     networks:
-      'bridge_ipv6'
+      - bridge_ipv6
     labels:
       traefik.enable: 'true'
       traefik.http.routers.ollama.rule: 'Host(`ollama.$DOMAIN`)'
