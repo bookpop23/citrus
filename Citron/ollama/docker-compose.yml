@@ -29,8 +29,9 @@ services:
     environment:
       OLLAMA_BASE_URL: 'http://ollama:11434'
       WEBUI_SECRET_KEY: '243tuil234gut2i5l34gt3t5hiuohgoigeho'
+      PORT: '3000'
     ports:
-      - 3000:8080
+      - 3000:3000
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
@@ -40,7 +41,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.open-webui.rule: 'Host(`ai.$DOMAIN`)'
       traefik.http.routers.open-webui.service: 'open-webui'
-      traefik.http.services.open-webui.loadbalancer.server.port: '8080'
+      traefik.http.services.open-webui.loadbalancer.server.port: '3000'
 
 networks:
   bridge_ipv6:
