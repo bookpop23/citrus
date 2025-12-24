@@ -158,7 +158,7 @@ services:
       PRIMARY: 'http://pihole1|${PIHOLE_API_PASSWORD}'
       REPLICAS: 'http://pihole2|${PIHOLE_API_PASSWORD}'
       FULL_SYNC: 'false'
-      CRON: */15 * * * *
+      CRON: '*/15 * * * *'
       RUN_GRAVITY: 'true'
       CLIENT_SKIP_TLS_VERIFICATION: 'true'
       SYNC_CONFIG_DNS: 'true'
