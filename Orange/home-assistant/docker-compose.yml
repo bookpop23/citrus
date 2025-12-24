@@ -69,6 +69,7 @@ services:
       - USERNAME=${EUFY_USERNAME}
       - PASSWORD=${EUFY_PASSWORD}
       - PORT=3000
+      - DEBUG=true
     ports:
       - 3000:3000
     networks:
