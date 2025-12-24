@@ -68,9 +68,9 @@ services:
       - PGID=${PGID}
       - USERNAME=${EUFY_USERNAME}
       - PASSWORD=${EUFY_PASSWORD}
-      - PORT=3000
+      - PORT=3003
     ports:
-      - 3000:3000
+      - 3003:3003
     networks:
       - traefik-public
     deploy:
