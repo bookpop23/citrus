@@ -58,6 +58,25 @@ services:
         - traefik.http.routers.esphome.middlewares=authentik@file
         - traefik.http.services.esphome.loadbalancer.server.port=6052
 
+  eufy-security-ws:
+    container_name: eufy-security-ws
+    image: bropat/eufy-security-ws:latest
+    volumes:
+      - $DOCKERDIR/appdata/eufy-security-ws/config:/config
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - USERNAME=${EUFY_USERNAME}
+      - PASSWORD=${EUFY_PASSWORD}
+      - PORT=3000
+    ports:
+      - 3000:3000
+    networks:
+      - traefik-public
+    deploy:
+      mode: replicated 
+      replicas: 1
+
 networks:
   traefik-public:
     external: true
