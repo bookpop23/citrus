@@ -150,6 +150,7 @@ services:
   librespeed:
     image: lscr.io/linuxserver/librespeed:latest
     container_name: speedtest
+    hostname: speedtest
     networks:
       - traefik-public
     environment:
