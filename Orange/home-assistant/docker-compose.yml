@@ -37,7 +37,7 @@ services:
 
         - traefik.http.routers.ha-insecure.entrypoints=web
         - traefik.http.routers.ha-insecure.tls=false
-        - traefik.http.routers.ha-insecure.rule=Host(`home-assistant`)
+        - traefik.http.routers.ha-insecure.rule=Host(`homeassistant`)
         - traefik.http.routers.ha-insecure.service=ha-insecure
         - traefik.http.services.ha-insecure.loadbalancer.server.port=8123
 
