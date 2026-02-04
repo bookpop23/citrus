@@ -91,6 +91,7 @@ services:
     networks:
       - traefik-public
     ports:
+      - 5000:5000
       - 10200:10200
     deploy:
       mode: replicated
