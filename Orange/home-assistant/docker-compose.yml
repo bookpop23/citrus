@@ -85,7 +85,6 @@ services:
     hostname: piper
     command: >
       --voice en_US-ryan-high
-      --uri tcp://0.0.0.0:10200
     volumes:
       - $DOCKERDIR/appdata/piper/data:/data
     networks:
