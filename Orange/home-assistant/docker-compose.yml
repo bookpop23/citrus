@@ -80,11 +80,9 @@ services:
       replicas: 1
 
   piper:
-    image: rhasspy/wyoming-piper:latest
+    image: lscr.io/linuxserver/piper:latest
     container_name: piper
     hostname: piper
-    command: >
-      --voice en_US-ryan-high
     volumes:
       - $DOCKERDIR/appdata/piper/data:/data
     networks:
@@ -92,10 +90,14 @@ services:
     ports:
       - 5000:5000
       - 10200:10200
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+      - PIPER_VOICE=en_US-ryan-high
     deploy:
       mode: replicated
       replicas: 1
-
 
   eufy-security-ws:
     container_name: eufy-security-ws
