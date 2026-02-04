@@ -78,7 +78,7 @@ services:
       replicas: 1
 
   piper:
-    image: rhasspy/piper:latest
+    image: rhasspy/wyoming-piper:latest
     container_name: piper
     hostname: piper
     command: >
