@@ -61,20 +61,20 @@ services:
         - traefik.http.routers.esphome.middlewares=authentik@file
         - traefik.http.services.esphome.loadbalancer.server.port=6052
 
-  whisper:
-    image: rhasspy/wyoming-whisper:latest
-    container_name: whisper
+  faster-whisper:
+    image: lscr.io/linuxserver/faster-whisper:latest
+    container_name: faster-whisper
     hostname: whisper
-    command: >
-      --model tiny-int8
-      --language en
-      --uri tcp://0.0.0.0:10300
     volumes:
       - $DOCKERDIR/appdata/whisper/data:/data
     networks:
       - traefik-public
     ports:
       - 10300:10300
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
     deploy:
       mode: replicated 
       replicas: 1
