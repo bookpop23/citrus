@@ -94,7 +94,7 @@ services:
       - PGID=${PGID}
       - PUID=${PUID}
       - TZ=${TZ}
-      - PIPER_VOICE=en_US-lessac-medium
+      - PIPER_VOICE=en_US-ryan-high
     deploy:
       mode: replicated
       replicas: 1
