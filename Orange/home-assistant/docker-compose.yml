@@ -80,7 +80,7 @@ services:
       replicas: 1
 
   piper:
-    image: lscr.io/linuxserver/piper:latest
+    image: rhasspy/wyoming-piper:1.5.2
     container_name: piper
     hostname: piper
     volumes:
