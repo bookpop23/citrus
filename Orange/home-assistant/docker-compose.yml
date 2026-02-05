@@ -84,7 +84,7 @@ services:
     container_name: piper
     hostname: piper
     volumes:
-      - $DOCKERDIR/appdata/piper/data:/data
+      - $DOCKERDIR/appdata/piper/data:/config
     networks:
       - traefik-public
     ports:
