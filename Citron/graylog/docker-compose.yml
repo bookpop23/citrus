@@ -14,7 +14,7 @@ services:
   # Please take a look at the README at the top of this repo or the regular docs for more info.
   # Graylog Data Node: https://hub.docker.com/r/graylog/graylog-datanode
   datanode:
-    image: graylog/graylog-datanode:7.0.3
+    image: graylog/graylog-datanode:7.2.1
     restart: "on-failure"
     hostname: graylog-datanode
     environment:
@@ -45,7 +45,7 @@ services:
 
   # Graylog: https://hub.docker.com/r/graylog/graylog
   graylog:
-    image: graylog/graylog:7.0.3
+    image: graylog/graylog:7.2.1
     restart: "on-failure"
     hostname: graylog-server
     entrypoint: "/usr/bin/tini --  /docker-entrypoint.sh"
