@@ -23,6 +23,7 @@ services:
       FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD}
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,${DOMAIN}'
+      FTLCONF_files_gravity: '/var/lib/pihole/gravity/gravity.db'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -31,6 +32,7 @@ services:
       - $DOCKERDIR/appdata/pihole1/data:/etc/pihole/
       # - $DOCKERDIR/appdata/pihole1/data/logs:/var/log/
       - $DOCKERDIR/appdata/pihole1/dnsmasq:/etc/dnsmasq.d/
+      - /var/lib/pihole/gravity:/var/lib/pihole/gravity
       - type: tmpfs
         target: /dev/shm
         tmpfs:
@@ -79,6 +81,7 @@ services:
       FTLCONF_webserver_api_password: ${PIHOLE_API_PASSWORD} # Use the same password as pihole1
       FTLCONF_dns_dnssec: 'true'
       FTLCONF_dns_revServers: 'true,192.168.0.0/20,192.168.1.1#53,${DOMAIN}'
+      FTLCONF_files_gravity: '/var/lib/pihole/gravity/gravity.db'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -87,6 +90,7 @@ services:
       - $DOCKERDIR/appdata/pihole2/data:/etc/pihole/
       # - $DOCKERDIR/appdata/pihole2/data/logs:/var/log/
       - $DOCKERDIR/appdata/pihole2/dnsmasq:/etc/dnsmasq.d/
+      - /var/lib/pihole/gravity:/var/lib/pihole/gravity
       - type: tmpfs
         target: /dev/shm
         tmpfs:
@@ -167,7 +171,7 @@ services:
       REPLICAS: 'http://pihole2|${PIHOLE_API_PASSWORD}'
       FULL_SYNC: 'false'
       CRON: '*/15 * * * *'
-      RUN_GRAVITY: 'true'
+      RUN_GRAVITY: 'false'
       CLIENT_SKIP_TLS_VERIFICATION: 'true'
       SYNC_CONFIG_DNS: 'true'
       SYNC_CONFIG_NTP: 'true'
