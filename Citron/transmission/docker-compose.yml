@@ -33,7 +33,7 @@ services:
       TRANSMISSION_PEER_LIMIT_GLOBAL: '1000'
       TRANSMISSION_PEER_LIMIT_PER_TORRENT: '100'
       TRANSMISSION_UPLOAD_SLOTS_PER_TORRENT: '8'
-      TRANSMISSION_LOG_LEVEL: 'info'
+      TRANSMISSION_LOG_LEVEL: 'debug'
       CREATE_TUN_DEVICE: 'true'
       ENABLE_UFW: 'false'
       UFW_ALLOW_GW_NET: 'false'
@@ -46,17 +46,17 @@ services:
       HEALTH_CHECK_HOST: 'google.com'
       SELFHEAL: 'false'
     healthcheck:
-      test: ["CMD", "curl", "-fL", "http://127.0.0.1:9091"]
-      interval: 2s
-      timeout: 3s
+      test: ["CMD", "/etc/scripts/healthcheck.sh"]
+      interval: 60s
+      timeout: 20s
       retries: 3
-      start_period: 10s
+      start_period: 180s
     ulimits:
       nofile:
         soft: 262144
         hard: 262144 # Fixes too many open files error
     labels:
-      autoheal: 'true'
+      autoheal: 'false'
       traefik.enable: 'true'
       traefik.http.routers.transmission.rule: 'Host(`transmission.reidsprite.com`) && PathPrefix(`/transmission`)'
       traefik.http.routers.transmission.service: 'transmission'
