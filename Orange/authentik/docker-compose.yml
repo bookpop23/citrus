@@ -2,7 +2,7 @@
 
 services:
   server:
-    image: ghcr.io/goauthentik/server:2025.4.4
+    image: ghcr.io/goauthentik/server:2025.6.4
     command: server
     hostname: authentik_server
     secrets:
@@ -57,7 +57,7 @@ services:
         traefik.http.routers.authentik-callback.service: authentik
         traefik.http.routers.authentik-callback.priority: 200
   worker:
-    image: ghcr.io/goauthentik/server:2025.4.4
+    image: ghcr.io/goauthentik/server:2025.6.4
     command: worker
     hostname: authentik_worker
     deploy:
